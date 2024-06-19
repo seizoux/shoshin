@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'H7GBKHeavy.TTF';
+    src: url('../fonts/H7GBKHeavy.TTF') format('truetype');
+}
+
+@font-face {
+    font-family: 'Source Han Sans CN Regular';
+    src: url('../fonts/Source Han Sans CN Regular.otf') format('truetype');
+}
+
+.sans-it {
+  font-family: 'Source Han Sans CN Regular', sans-serif;
+}
+
+:root {
+  --light-bg-color: #FAF9F6; /* Light mode background color */
+  --dark-bg-color: #36454F; /* Dark mode background color */
+  --bg-image-light: url('../wallpapers/light.png');
+  --bg-image-dark: url('../wallpapers/dark.png');
+  --input-glow-color: 0 0 28px rgba(221, 219, 219, 1.5);
+  --input-dark-color: 0 0 28px rgba(0, 0, 0, 1.5);
+}
+
+body {
+  background-color: var(--light-bg-color); /* Default to light mode */
+  transition: background-color 0.3s ease; /* Smooth transition for color change */
+  font-family: 'H7GBKHeavy.TTF', sans-serif;
+  overflow-x: hidden;
+}
+
+body.dark {
+  background-color: var(--dark-bg-color); /* Switch to dark mode */
+  --input-glow-color: 0 0 28px rgba(255, 255, 255, 1.5);
+}
+
+.bg-fade-bottom::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%; /* Cover the entire height to ensure a smooth transition */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 50%, var(--light-bg-color) 100%);
+  z-index: 1;
+}
+
+body.dark .bg-fade-bottom::after {
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, var(--dark-bg-color) 100%), url('../wallpapers/dark.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.input-glow {
+  box-shadow: var(--input-glow-color);
+}
+
+.input-glow-dark {
+  box-shadow: var(--input-dark-color);
+}
+
+#selectionIndicator {
+  transition: left 0.5s ease, top 0.5s ease; /* Adjust time as needed */
+}
