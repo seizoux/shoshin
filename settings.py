@@ -3,6 +3,14 @@ import os
 
 load_dotenv()
 
+RESONATORS = [
+        "Rover", "Rover havoc", "Yinlin", "Jianxin", "Lingyang",
+        "Baizhi", "Yangyang", "Yuanwu", "Taoqi",
+        "Aalto", "Chixia", "Mortefi", "Sanhua", "Danjin",
+        "Jiyan", "Verina", "Calcharo", "Encore", "Changli",
+        "Jinhsi"
+    ]
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 DB = os.getenv("DB")
 API_DATABASE_URL = os.getenv("API_DB")

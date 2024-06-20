@@ -25,6 +25,22 @@
   --input-dark-color: 0 0 28px rgba(0, 0, 0, 1.5);
 }
 
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.bounce {
+  display: inline-block;
+  animation-name: bounce;
+  animation-duration: 0.5s;
+  animation-timing-function: ease;
+}
+
 body {
   background-color: var(--light-bg-color); /* Default to light mode */
   transition: background-color 0.3s ease; /* Smooth transition for color change */
