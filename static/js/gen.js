@@ -44,14 +44,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function initializePlaceholders() {
+        // Create line containers
+        const firstLineContainer = document.createElement('div');
+        firstLineContainer.className = 'flex justify-center items-center flex-wrap mb-4 gap-2'; // Flex container for the first line
+    
+        const secondLineContainer = document.createElement('div');
+        secondLineContainer.className = 'flex justify-center items-center flex-wrap gap-2'; // Flex container for the second line
+    
         for (let i = 0; i < 9; i++) {
             // Create the main container div for each placeholder and its description
             const mainContainerDiv = document.createElement('div');
-            mainContainerDiv.className = 'flex flex-col items-center justify-center mb-4'; // Margin bottom for spacing between each set
+            mainContainerDiv.className = 'flex flex-col items-center justify-center mb-4'; // Margin bottom for spacing
     
             // Create the wrapper div for the image with specified classes
             const wrapperDiv = document.createElement('div');
-            wrapperDiv.className = 'bg-night-dark/50 dark:bg-off-white/50 input-glow-dark p-2 flex justify-center items-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg';
+            // Adjusted classes for a wider appearance
+            wrapperDiv.className = 'bg-transparent input-glow-dark p-2 flex justify-center items-center w-48 h-24 border-2 border-dashed border-gray-300 rounded-lg';
     
             // Create the img element
             const img = document.createElement('img');
@@ -66,15 +74,30 @@ document.addEventListener('DOMContentLoaded', function() {
             mainContainerDiv.appendChild(wrapperDiv);
     
             // Create and append the description text outside and below the image wrapper
-            const descriptionText = document.createElement('span'); // or 'div' if you prefer
+            const descriptionText = document.createElement('span');
             descriptionText.textContent = placeholderTexts[i]; // Get text from array
-            descriptionText.className = 'text-center mt-2 text-black dark:text-white font-bold'; // Tailwind CSS for styling
-            mainContainerDiv.appendChild(descriptionText); // Append the text element outside and below the image wrapper
+            descriptionText.className = 'text-center mt-2 text-black dark:text-white font-bold';
+            mainContainerDiv.appendChild(descriptionText);
     
-            // Append the main container div to the placeholders container
-            placeholdersContainer.appendChild(mainContainerDiv);
-            updateStepTip(0);
+            // Append the main container div to the appropriate line container
+            if (i < 5) {
+                firstLineContainer.appendChild(mainContainerDiv);
+            } else {
+                secondLineContainer.appendChild(mainContainerDiv);
+            }
         }
+    
+        // Create a new flex container for both line containers
+        const flexContainer = document.createElement('div');
+        flexContainer.className = 'flex flex-col gap-2'; // Flex column with gap
+
+        // Append line containers to the new flex container
+        flexContainer.appendChild(firstLineContainer);
+        flexContainer.appendChild(secondLineContainer);
+
+        // Append the new flex container to the placeholders container
+        placeholdersContainer.appendChild(flexContainer);
+        updateStepTip(0);
     }
 
     function handleFileUpload(event) {
@@ -111,10 +134,16 @@ document.addEventListener('DOMContentLoaded', function() {
             uploadedFiles.push(file);
 
             if (currentStep < 9) {
-                const wrapperDiv = placeholdersContainer.children[currentStep];
+                // Assuming the first 5 placeholders are in the firstLineContainer and the rest in the secondLineContainer
+                const lineContainerIndex = currentStep < 5 ? 0 : 1; // 0 for firstLineContainer, 1 for secondLineContainer
+                const lineContainer = placeholdersContainer.children[0].children[lineContainerIndex]; // Access the new flex container, then the correct line container
+        
+                // Calculate the index of the mainContainerDiv within the selected line container
+                const mainContainerDivIndex = currentStep < 5 ? currentStep : currentStep - 5;
+                const wrapperDiv = lineContainer.children[mainContainerDivIndex];
+        
                 const img = wrapperDiv.getElementsByTagName('img')[0];
                 img.src = URL.createObjectURL(file); // Replace placeholder with uploaded file image
-                img.className = 'w-full h-full object-cover'; // Adjusted to fill the div, maintaining aspect ratio
 
                 currentStep++;
                 updateStepTip(currentStep);
@@ -232,14 +261,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const downloadButton = document.createElement('a');
                 downloadButton.href = data.image; // URL to the file you want to download
                 downloadButton.setAttribute('download', `shoshin_download_${data.name}.png`); // Suggests a filename. The extension should match the file type.
-                downloadButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-off-white/50 hover:bg-night-dark dark:hover:bg-off-white text-black dark:text-white hover:text-white dark:hover:text-black input-glow w-full";
+                downloadButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-white text-black hover:bg-black hover:text-white input-glow w-full";
                 downloadButton.innerText = 'Download';
                 buttonsContainer.appendChild(downloadButton);
 
                 // Adjusted "Copy URL" button code
                 const copyButton = document.createElement('a');
                 copyButton.href = '#';
-                copyButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-off-white/50 hover:bg-night-dark dark:hover:bg-off-white text-black dark:text-white hover:text-white dark:hover:text-black input-glow w-full";
+                copyButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-white text-black hover:bg-black hover:text-white input-glow w-full";
                 copyButton.innerText = 'Copy URL';
                 copyButton.onclick = (e) => {
                     e.preventDefault(); // Prevent the default anchor action
