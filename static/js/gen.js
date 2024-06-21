@@ -13,7 +13,7 @@ const placeholderTexts = [
     "4TH ECHO",
     "5TH ECHO",
     "SKILLS",
-    "RESONANCE CHAINS"
+    "RS. CHAINS"
     // Add more descriptions as needed
 ];
 
@@ -211,11 +211,53 @@ document.addEventListener('DOMContentLoaded', function() {
                     return reject(data.error);
                 }
                 placeholdersContainer.textContent = ''; // Clear the container
+                
+                // Create a new div to hold the image and buttons with flex layout
+                const imageAndButtonsContainer = document.createElement('div');
+                imageAndButtonsContainer.className = 'flex flex-col justify-center items-center gap-4'; // Updated to flex-col and gap-4
+                
+                const imgContainer = document.createElement('div'); // Container for the image to apply flex properties
+                imgContainer.className = 'flex flex-row justify-center items-center'; // Flex container for the image
                 const img = document.createElement('img');
-                img.src = `data:image/png;base64,${data.image}`;
-                img.className = 'mx-auto mt-4 w-1/2 h-auto';
+                img.src = `${data.image}`;
+                img.className = 'w-1/2 h-auto';
                 img.style = 'object-fit: contain;';
-                placeholdersContainer.appendChild(img); // Display the final image
+                imgContainer.appendChild(img); // Display the final image within the flex container
+                imageAndButtonsContainer.appendChild(imgContainer); // Append the image container
+                
+                const buttonsContainer = document.createElement('div'); // Container for buttons
+                buttonsContainer.className = 'flex flex-row justify-center items-center gap-4'; // Flex container for buttons
+                                
+                // Assuming 'data.image' contains the URL to the image you want to download
+                const downloadButton = document.createElement('a');
+                downloadButton.href = data.image; // URL to the file you want to download
+                downloadButton.setAttribute('download', `shoshin_download_${data.name}.png`); // Suggests a filename. The extension should match the file type.
+                downloadButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-off-white/50 hover:bg-night-dark dark:hover:bg-off-white text-black dark:text-white hover:text-white dark:hover:text-black input-glow w-full";
+                downloadButton.innerText = 'Download';
+                buttonsContainer.appendChild(downloadButton);
+
+                // Adjusted "Copy URL" button code
+                const copyButton = document.createElement('a');
+                copyButton.href = '#';
+                copyButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-off-white/50 hover:bg-night-dark dark:hover:bg-off-white text-black dark:text-white hover:text-white dark:hover:text-black input-glow w-full";
+                copyButton.innerText = 'Copy URL';
+                copyButton.onclick = (e) => {
+                    e.preventDefault(); // Prevent the default anchor action
+                    navigator.clipboard.writeText(img.src).then(() => {
+                        copyButton.innerText = 'URL Copied!'; // Change button text to indicate success
+                        setTimeout(() => {
+                            copyButton.innerText = 'Copy URL'; // Revert back to original text after 2 seconds
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Error copying URL:', err);
+                    });
+                };
+                buttonsContainer.appendChild(copyButton); // Append the copy URL button within the flex container
+                
+                imageAndButtonsContainer.appendChild(buttonsContainer); // Append the buttons container to the main container
+                
+                placeholdersContainer.appendChild(imageAndButtonsContainer); // Append the new div to the main container
+                
                 resolve(data);
             })
             .catch(error => {

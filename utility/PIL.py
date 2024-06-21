@@ -7,6 +7,16 @@ import base64
 import pytesseract
 from quart import jsonify
 import settings as _WebSettings
+import aioboto3
+import tempfile
+import settings
+import logging
+import random
+import string
+from quart import Quart
+
+log = logging.getLogger("hypercorn")
+log.setLevel(logging.INFO)
 
 resonator_names = _WebSettings.RESONATORS
 
@@ -18,6 +28,11 @@ def crop_image(image, crop_area):
 font_path = './static/fonts/H7GBKHeavy.TTF'
 font_size = 20
 font = ImageFont.truetype(font_path, font_size)
+
+def generate_random_string(length=16):
+    characters = string.ascii_letters + string.digits  # Includes uppercase, lowercase letters, and digits
+    random_string = ''.join(random.choice(characters) for _ in range(length))
+    return random_string
 
 def apply_vignette(image, blur_radius_factor=0.2, enhance_factor=0.4):
     width, height = image.size
@@ -80,7 +95,7 @@ fontName = ImageFont.truetype(font_path, font_size)
 fontLvl = ImageFont.truetype(font_path, 80)
 fontSponsor = ImageFont.truetype(font_path, 40)
 
-async def process_images(files):
+async def process_images(files, app: Quart):
     loop = asyncio.get_event_loop()
 
     # Load images
@@ -306,4 +321,44 @@ async def process_images(files):
     final_image.save(in_memory_file, format="PNG")
     final_image_base64 = base64.b64encode(in_memory_file.getvalue()).decode('utf-8')
     
-    return {"image": final_image_base64, "name": name_text, "level": level_text, "yellow_text": yellow_text}
+    # Decode the base64 data to bytes
+    file_data = base64.b64decode(final_image_base64)
+
+    # Write the file data to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(file_data)
+        temp_file_path = temp_file.name
+
+    _s3 = aioboto3.Session(
+        aws_access_key_id=settings.CF_ACCESS_KEY,
+        aws_secret_access_key=settings.CF_SECRET_KEY,
+    )
+    
+    _file_url = None
+    name_ = generate_random_string()
+    file_name = f"{name_}.png"
+
+    async with _s3.client('s3', endpoint_url='https://980a51450a94985d4207be762678dac1.r2.cloudflarestorage.com', region_name='auto') as s3:
+        _verify_ex = await app.session.get(f"https://cdn.shoshin.moe/{file_name}")
+        if not _verify_ex.status == 200:
+            try:
+                await s3.upload_file(
+                    Filename=temp_file_path,
+                    Bucket="shoshin",
+                    Key=name_,
+                    ExtraArgs={
+                        'ContentType': "image/png",  # Set the content type
+                        'ContentDisposition': 'inline',  # Set the content disposition,
+                        'ACL': 'public-read'
+                    },
+                )
+
+                # Generate a presigned URL for the uploaded file
+                _file_url = "https://cdn.shoshin.moe/" + name_
+            except Exception as e:
+                log.info(f'Exception in R2: {e}')
+        else:
+            _file_url = f"https://cdn.shoshin.moe/{name_}"
+
+
+    return {"image": _file_url, "name": name_text, "level": level_text, "yellow_text": yellow_text}

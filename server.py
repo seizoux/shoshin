@@ -1,5 +1,6 @@
 # This file is the main file for the web server. It handles all the routes and the main server setup.
 import aiohttp
+from flask import redirect
 from quart import Quart, request, session, render_template, jsonify
 import settings as _WebSettings
 import asyncpg
@@ -66,7 +67,7 @@ def make_session_permanent():
 @app.route("/api/generate_build", methods=["POST"])
 async def gen_build():
     files = await request.files
-    result = await PIL.process_images(files)
+    result = await PIL.process_images(files, app)
     return jsonify(result)
 
 @app.route("/privacy")
@@ -103,4 +104,4 @@ async def wuwanews():
 
 @app.route("/", methods=["GET"])
 async def home():
-    return "Hello"
+    return redirect("https://shoshin.moe/wuwa/generate")
