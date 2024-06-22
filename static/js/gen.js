@@ -249,8 +249,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 imgContainer.className = 'flex flex-row justify-center items-center'; // Flex container for the image
                 const img = document.createElement('img');
                 img.src = `${data.image}`;
-                img.className = 'w-1/2 h-auto';
+                img.className = 'w-full p-2 md:p-0 md:w-1/2 h-auto';
                 img.style = 'object-fit: contain;';
+
                 imgContainer.appendChild(img); // Display the final image within the flex container
                 imageAndButtonsContainer.appendChild(imgContainer); // Append the image container
                 
@@ -411,12 +412,11 @@ function getImageUrlForSocial(socialPlatform) {
 }
 
 function applyMarkdown(text) {
-    let span = document.createElement("div");
-    span.className = "text-black dark:text-white";
+    let container = document.createElement("div");
+    container.className = "text-black dark:text-white";
 
     const segments = text.split(/(?<!https?:)\/\//); // Split by '//' to handle new lines
 
-    // Mapping of header levels to Tailwind CSS font size classes
     const headerSizeClasses = {
         1: "text-3xl font-bold",
         2: "text-lg font-bold",
@@ -426,7 +426,6 @@ function applyMarkdown(text) {
     segments.forEach((segment, index) => {
         let formattedSegment = document.createDocumentFragment();
 
-        // Adjusted regex to separately capture header symbols and text
         let regex = /(\*\*(.*?)\*\*(?!\*))|(\*(?!\*)(.*?)\*)|(__(.*?)__)|(`(.*?)`)|(\[(.*?)\]\((.*?)\))|(#{1,3})\s(.*?)$|(\|\|(.*?)\|\|)|(\>\s(.*?))/gm;
         let match;
         let lastIndex = 0;
@@ -435,40 +434,49 @@ function applyMarkdown(text) {
             if (match.index > lastIndex) {
                 formattedSegment.appendChild(document.createTextNode(segment.slice(lastIndex, match.index)));
             }
-        
-            let matchSpan = document.createElement("span");
+
             if (match[1]) { // Bold
-                matchSpan.className = "font-bold";
-                matchSpan.textContent = match[2];
+                let strong = document.createElement("strong");
+                strong.textContent = match[2];
+                formattedSegment.appendChild(strong);
             } else if (match[3]) { // Italic
-                matchSpan.className = "italic";
-                matchSpan.textContent = match[4];
+                let em = document.createElement("em");
+                em.textContent = match[4];
+                formattedSegment.appendChild(em);
             } else if (match[5]) { // Underline
-                matchSpan.className = "underline underline-offset-2";
-                matchSpan.textContent = match[6];
+                let u = document.createElement("u");
+                u.textContent = match[6];
+                formattedSegment.appendChild(u);
             } else if (match[7]) { // Code
-                matchSpan.className = "bg-gray-600 text-white p-1 rounded-md";
-                matchSpan.textContent = match[8];
+                let code = document.createElement("code");
+                code.textContent = match[8];
+                formattedSegment.appendChild(code);
             } else if (match[9]) { // Links
-                matchSpan = document.createElement("a");
-                matchSpan.className = "text-blue-500 hover:text-blue-600";
-                matchSpan.href = match[11];
-                matchSpan.textContent = match[10];
-                matchSpan.target = "_blank";
-            } else if (match[12]) { // Headers, adjusted group numbers for header symbols and text
+                let a = document.createElement("a");
+                a.href = match[11];
+                a.textContent = match[10];
+                a.target = "_blank";
+                formattedSegment.appendChild(a);
+            } else if (match[12]) { // Headers
                 let headerLevel = match[12].length;
-                matchSpan.className = headerSizeClasses[headerLevel] || "font-bold";
-                matchSpan.textContent = match[13].trim(); // Use the separate group for header text
+                let header = document.createElement(`h${headerLevel}`);
+                header.className = headerSizeClasses[headerLevel] || "font-bold";
+                header.textContent = match[13];
+                formattedSegment.appendChild(header);
             } else if (match[14]) { // Spoiler
-                matchSpan.className = "bg-black text-transparent hover:text-white cursor-pointer";
-                matchSpan.textContent = match[15];
-                matchSpan.onclick = function() { this.classList.toggle("text-transparent"); this.classList.toggle("hover:text-white"); };
+                let span = document.createElement("span");
+                span.style.backgroundColor = "black";
+                span.style.color = "black";
+                span.textContent = match[15];
+                span.onmouseover = () => span.style.color = "white";
+                span.onmouseout = () => span.style.color = "black";
+                formattedSegment.appendChild(span);
             } else if (match[16]) { // Blockquote
-                matchSpan = document.createElement("blockquote");
-                matchSpan.className = "pl-4 border-l-4 border-gray-500 italic";
-                matchSpan.textContent = match[17];
+                let blockquote = document.createElement("blockquote");
+                blockquote.textContent = match[17];
+                formattedSegment.appendChild(blockquote);
             }
-            formattedSegment.appendChild(matchSpan);
+
             lastIndex = regex.lastIndex;
         }
 
@@ -476,14 +484,14 @@ function applyMarkdown(text) {
             formattedSegment.appendChild(document.createTextNode(segment.slice(lastIndex)));
         }
 
-        span.appendChild(formattedSegment);
+        container.appendChild(formattedSegment);
 
         if (index < segments.length - 1) {
-            span.appendChild(document.createElement("br"));
+            container.appendChild(document.createElement("br"));
         }
     });
 
-    return span;
+    return container;
 }
 
 function runMarkdownConversion() {
@@ -561,25 +569,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('DOMContentLoaded', function () {
     const uidInput = document.getElementById('uidInput');
-    const tooltip = document.getElementById('tooltip');
+    const tooltipUid = document.getElementById('tooltip');
 
-    // Show tooltip on focus or mouseenter
+    // Show tooltip for uidInput on focus or mouseenter
     uidInput.addEventListener('focus', () => {
-        tooltip.classList.remove('opacity-0', 'invisible');
-        tooltip.classList.add('opacity-100');
+        tooltipUid.classList.remove('opacity-0', 'invisible');
+        tooltipUid.classList.add('opacity-100');
     });
     uidInput.addEventListener('mouseenter', () => {
-        tooltip.classList.remove('opacity-0', 'invisible');
-        tooltip.classList.add('opacity-100');
+        tooltipUid.classList.remove('opacity-0', 'invisible');
+        tooltipUid.classList.add('opacity-100');
     });
 
-    // Hide tooltip on blur or mouseleave
+    // Hide tooltip for uidInput on blur or mouseleave
     uidInput.addEventListener('blur', () => {
-        tooltip.classList.add('opacity-0', 'invisible');
-        tooltip.classList.remove('opacity-100');
+        tooltipUid.classList.add('opacity-0', 'invisible');
+        tooltipUid.classList.remove('opacity-100');
     });
     uidInput.addEventListener('mouseleave', () => {
-        tooltip.classList.add('opacity-0', 'invisible');
-        tooltip.classList.remove('opacity-100');
+        tooltipUid.classList.add('opacity-0', 'invisible');
+        tooltipUid.classList.remove('opacity-100');
+    });
+
+    // Assuming fileUpload and its tooltip have similar behavior
+    const fileUpload = document.getElementById('fileDiv');
+    const tooltipFile = document.getElementById('tooltipFile');
+    let isHoveringOverTooltip = false; // Track if the mouse is over the tooltip
+
+    console.log(`Tooltip visibility: ${tooltipFile.classList.contains('opacity-100')}`);
+
+    // Show tooltip for fileUpload on focus or mouseenter
+    fileUpload.addEventListener('focus', () => {
+        tooltipFile.classList.remove('opacity-0', 'invisible');
+        tooltipFile.classList.add('opacity-100');
+        console.log(`Tooltip visibility: ${tooltipFile.classList.contains('opacity-100')}`);
+    });
+    fileUpload.addEventListener('mouseenter', () => {
+        tooltipFile.classList.remove('opacity-0', 'invisible');
+        tooltipFile.classList.add('opacity-100');
+        console.log(`Tooltip visibility: ${tooltipFile.classList.contains('opacity-100')}`);
+    });
+
+    // Hide tooltip for fileUpload on blur or mouseleave, checking if not hovering over tooltip
+    fileUpload.addEventListener('blur', () => {
+        if (!isHoveringOverTooltip) {
+            tooltipFile.classList.add('opacity-0', 'invisible');
+            tooltipFile.classList.remove('opacity-100');
+        }
+        console.log(`Tooltip visibility: ${tooltipFile.classList.contains('opacity-100')}`);
+    });
+    fileUpload.addEventListener('mouseleave', () => {
+        setTimeout(() => { // Delay to check if mouse moved to the tooltip
+            if (!isHoveringOverTooltip) {
+                tooltipFile.classList.add('opacity-0', 'invisible');
+                tooltipFile.classList.remove('opacity-100');
+                console.log(`Tooltip visibility: ${tooltipFile.classList.contains('opacity-100')}`);
+            }
+        }, 100); // Short delay to allow for mouse to possibly enter tooltip before hiding
+    });
+
+    // Event listeners for the tooltip to manage hover state
+    tooltipFile.addEventListener('mouseenter', () => {
+        isHoveringOverTooltip = true;
+    });
+    tooltipFile.addEventListener('mouseleave', () => {
+        isHoveringOverTooltip = false;
+        tooltipFile.classList.add('opacity-0', 'invisible');
+        tooltipFile.classList.remove('opacity-100');
     });
 });

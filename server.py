@@ -66,9 +66,22 @@ def make_session_permanent():
 
 @app.route("/api/generate_build", methods=["POST"])
 async def gen_build():
+    user_agent = request.headers.get('User-Agent').lower()  # Retrieve the User-Agent header and convert to lowercase for easier matching
+
+    # Check if the User-Agent indicates a mobile device
+    if 'windows' in user_agent:
+        device_type = 'desktop'
+    else:
+        device_type = 'mobile'
+
     files = await request.files
-    result = await PIL.process_images(files, app)
-    return jsonify(result)
+    result = await PIL.process_images(files, app, is_mobile=True if device_type == 'mobile' else False)
+    try:
+        return jsonify(result)
+    except Exception as e:
+        return result
+        log.info(f"[ERROR] Error in Generating Build: {e}")
+        return jsonify({"error": str(e)})
 
 @app.route("/privacy")
 async def privacy():

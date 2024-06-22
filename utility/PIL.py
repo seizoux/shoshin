@@ -14,6 +14,7 @@ import logging
 import random
 import string
 from quart import Quart
+import re
 
 log = logging.getLogger("hypercorn")
 log.setLevel(logging.INFO)
@@ -51,12 +52,17 @@ def apply_vignette(image, blur_radius_factor=0.2, enhance_factor=0.4):
     image = Image.composite(image, Image.new('RGB', image.size, 'black'), vignette)
     return image
 
-async def extract_text_from_image(image, roi, debug_label=""):
+async def extract_text_from_image(image, roi, debug_label="", psm="6", mob=False):
+    if mob == True:
+        pil_image = image.crop(roi)
+        text = pytesseract.image_to_string(pil_image, config=f'--psm {psm}', lang='eng')
+        return text.strip()
+    
     pil_image = image.crop(roi)
     pil_image = ImageOps.grayscale(pil_image)
     debug_image_path = f'./debug_{debug_label}.png'
     pil_image.save(debug_image_path)
-    config = '--psm 6'
+    config = f'--psm 6'
     text = pytesseract.image_to_string(pil_image, config=config, lang='eng')
     return text.strip()
 
@@ -90,25 +96,109 @@ def draw_text_with_shadow(draw, text, position, font, text_color, shadow_color, 
     draw.text(position, text, font=font, fill=text_color)
 
 font_path = './static/fonts/H7GBKHeavy.TTF'
-font_size = 75  # Increase the font size for better visibility
+font_size = 60  # Increase the font size for better visibility
 fontName = ImageFont.truetype(font_path, font_size)
-fontLvl = ImageFont.truetype(font_path, 80)
-fontSponsor = ImageFont.truetype(font_path, 40)
+fontLvl = ImageFont.truetype(font_path, 65)
+fontSponsor1st = ImageFont.truetype(font_path, 50)
+fontSponsor2nd = ImageFont.truetype(font_path, 27)
 
-async def process_images(files, app: Quart):
+async def process_images(files, app: Quart, is_mobile: bool = False):
+    log.info("[PROCESSING] Processing images: IS_MOBILE: %s", is_mobile)
     loop = asyncio.get_event_loop()
+
+    # Process stats ROIs
+    stats_rois = [
+        (240, 388, 783, 435),
+        (240, 434, 779, 484),
+        (240, 484, 780, 532),
+        (240, 531, 778, 580),
+        (240, 580, 781, 627),
+        (240, 627, 780, 675)
+    ] if is_mobile == False else [
+        (237, 331, 741, 372),
+        (241, 375, 741, 419),
+        (239, 421, 739, 462),
+        (239, 467, 743, 510),
+        (240, 512, 745, 553),
+        (240, 556, 738, 598)
+    ]
+
+    # Define the ROIs for the skill icons and passives
+    skill_rois = [
+        (515, 1108, 695, 1404),
+        (821, 920, 1018, 1217),
+        (1192, 845, 1373, 1092),
+        (1553, 923, 1742, 1217),
+        (1864, 1111, 2048, 1357)
+    ] if is_mobile == False else [
+        (599, 836, 738, 1045),
+        (832, 694, 972, 907),
+        (1105, 626, 1245, 811),
+        (1380, 693, 1516, 907),
+        (1614, 831, 1747, 1014)
+    ]
+
+    passive_rois = [
+        [(566, 816, 659, 912), (566, 525, 659, 613)],
+        [(875, 636, 967, 726), (877, 337, 967, 427)],
+        [(1236, 547, 1334, 647), (1240, 250, 1329, 341)],
+        [(1607, 636, 1697, 726), (1608, 338, 1697, 427)],
+        [(1916, 816, 2008, 912), (1916, 525, 2008, 613)]
+    ] if is_mobile == False else [
+        [(640, 611, 706, 676), (642, 389, 706, 452)],
+        [(872, 473, 939, 539), (874, 249, 937, 315)],
+        [(1144, 407, 1212, 477), (1146, 184, 1214, 251)],
+        [(1421, 474, 1485, 539), (1420, 250, 1485, 316)],
+        [(1648, 611, 1714, 676), (1648, 389, 1714, 452)]
+    ]
+
+    # Define the ROIs for the chain icons
+    chains_rois = [
+        (1648, 148, 1721, 217),
+        (1876, 367, 1950, 440),
+        (1954, 677, 2032, 747),
+        (1866, 978, 1953, 1051),
+        (1642, 1199, 1731, 1276),
+        (1334, 1285, 1425, 1357)
+    ] if is_mobile == False else [
+        (1441, 106, 1511, 167),
+        (1609, 275, 1677, 337),
+        (1677, 504, 1734, 563),
+        (1614, 732, 1675, 792),
+        (1445, 901, 1505, 955),
+        (1217, 962, 1275, 1019)
+    ]
+
+    fi_crop_roi = (200, 150, 600, 400) if is_mobile == False else (200, 74, 580, 330)
+    name_roi = (135, 5, 384, 62) if is_mobile == False else (90, 22, 359, 72)
+    yellow_roi = (139, 53, 290, 102) if is_mobile == False else (134, 87, 260, 132)
+    level_roi = (43, 164, 220, 204) if is_mobile == False else (36, 185, 191, 227)
 
     # Load images
     images = await loop.run_in_executor(executor, lambda: [Image.open(io.BytesIO(files[file].read())) for file in files])
 
     # Perform OCR
-    first_image = await loop.run_in_executor(executor, crop_image, images[0], (200, 150, 600, 400))
-    name_text = await extract_text_from_image(first_image, (135, 5, 384, 62), "name")
-    yellow_text = await extract_text_from_image(first_image, (139, 53, 290, 102), "yellow_text")
-    level_text = await extract_text_from_image(first_image, (43, 164, 220, 204), "level")
+    first_image = await loop.run_in_executor(executor, crop_image, images[0], fi_crop_roi)
+    name_text = await extract_text_from_image(first_image, name_roi, "name", "6")
+    yellow_text = await extract_text_from_image(first_image, yellow_roi, "yellow_text")
+    level_text = await extract_text_from_image(first_image, level_roi, "level", "7", True)
+
+    name_text = re.sub("[^a-zA-Z]", "", name_text)
+
+    byte_arr = io.BytesIO()
+    first_image.save(byte_arr, format='PNG')  # Use appropriate format like 'JPEG'
+
+    # Encode the byte array to base64
+    encoded_image = base64.b64encode(byte_arr.getvalue())
+
+    # Convert the base64 byte array to a string
+    encoded_string = encoded_image.decode('utf-8')
+
+    s = [name_text, yellow_text, level_text]
 
     if name_text not in resonator_names:
-        return jsonify({"error": "Resonator name not found. Are you sure you uploaded the correct images?"})
+        log.info(f"[ERROR] Text extraction failed, params extracted: {s}")
+        return jsonify({"error": "Resonator name not found. Are you sure you uploaded the correct images?", "first_image": encoded_string, "extracted": [name_text, yellow_text, level_text]})
 
     # Load resonator image
     resonator_image_path = f'./static/3dicons/{name_text.lower()}3d.png'
@@ -139,7 +229,10 @@ async def process_images(files, app: Quart):
     resized_resonator_image = await loop.run_in_executor(executor, resonator_image.resize, (new_resonator_width, canvas_height), Image.LANCZOS)
 
     # Crop images
-    second_image = await loop.run_in_executor(executor, crop_image, images[1], (225, 159, 225 + 570, 159 + 1016))
+
+    sc_roi = (225, 159, 225 + 570, 159 + 1016) if is_mobile == False else (234, 104, 758, 895)
+
+    second_image = await loop.run_in_executor(executor, crop_image, images[1], sc_roi)
     first_original_cropped = await loop.run_in_executor(executor, crop_image, images[0], (510, 7, 2190, 140))
 
     # Resize and paste resonator and second image
@@ -166,15 +259,6 @@ async def process_images(files, app: Quart):
     x_position = new_resonator_width + new_second_width
     final_image.paste(resized_banner_image, (x_position, y_position))
 
-    # Process stats ROIs
-    stats_rois = [
-        (240, 388, 783, 435),
-        (240, 434, 779, 484),
-        (240, 484, 780, 532),
-        (240, 531, 778, 580),
-        (240, 580, 781, 627),
-        (240, 627, 780, 675)
-    ]
     stat_images = await asyncio.gather(*[loop.run_in_executor(executor, crop_image, images[0], roi) for roi in stats_rois])
     column_width = new_banner_width // 2
     column_height = new_banner_height // 3
@@ -191,7 +275,7 @@ async def process_images(files, app: Quart):
     y_position = canvas_height // 2
 
     # Paste images 3, 4, 5, 6, and 7 in a single row
-    images_3_to_7 = await asyncio.gather(*[loop.run_in_executor(executor, crop_image, images[i], (1868, 185, 1868 + 587, 185 + 461)) for i in range(2, 7)])
+    images_3_to_7 = await asyncio.gather(*[loop.run_in_executor(executor, crop_image, images[i], (1868, 185, 1868 + 587, 185 + 461) if is_mobile == False else (1688, 121, 2212, 538)) for i in range(2, 7)])
     total_width_3_to_7 = sum(img.width for img in images_3_to_7)
     scaling_factor = remaining_width / total_width_3_to_7
     x_offset = x_position
@@ -210,23 +294,6 @@ async def process_images(files, app: Quart):
     remaining_height_for_banner = canvas_height - y_position - max_img_height
     resized_banner_image = await loop.run_in_executor(executor, banner_image.resize, (remaining_width, remaining_height_for_banner), Image.LANCZOS)
     final_image.paste(resized_banner_image, (x_position, y_position + max_img_height))
-
-    # Define the ROIs for the skill icons and passives
-    skill_rois = [
-        (515, 1108, 695, 1404),
-        (821, 920, 1018, 1217),
-        (1192, 845, 1373, 1092),
-        (1553, 923, 1742, 1217),
-        (1864, 1111, 2048, 1357)
-    ]
-
-    passive_rois = [
-        [(566, 816, 659, 912), (566, 525, 659, 613)],
-        [(875, 636, 967, 726), (877, 337, 967, 427)],
-        [(1236, 547, 1334, 647), (1240, 250, 1329, 341)],
-        [(1607, 636, 1697, 726), (1608, 338, 1697, 427)],
-        [(1916, 816, 2008, 912), (1916, 525, 2008, 613)]
-    ]
 
     max_skill_icon_width = int(remaining_width * 0.1)
     max_skill_icon_height = int(remaining_height_for_banner * 0.8)
@@ -279,16 +346,6 @@ async def process_images(files, app: Quart):
     divider_y = y_position + max_img_height + (remaining_height_for_banner - divider_height) // 2
     draw.line([(divider_x, divider_y), (divider_x, divider_y + divider_height)], fill="white", width=divider_width)
 
-    # Define the ROIs for the chain icons
-    chains_rois = [
-        (1648, 148, 1721, 217),
-        (1876, 367, 1950, 440),
-        (1954, 677, 2032, 747),
-        (1866, 978, 1953, 1051),
-        (1642, 1199, 1731, 1276),
-        (1334, 1285, 1425, 1357)
-    ]
-
     max_chain_icon_width = (canvas_width - divider_x - space_between_icons) // 3
     max_chain_icon_height = int(remaining_height_for_banner * 0.4)
     space_between_icons = 10
@@ -311,10 +368,23 @@ async def process_images(files, app: Quart):
         circular_icon_x += (max_chain_icon_width - circular_icon_width) // 2
         final_image.paste(resized_circular_icon, (circular_icon_x, circular_icon_y), mask=resized_circular_icon)
 
-    # Draw the sponsor text on the final image after all other drawings
-    draw_final = ImageDraw.Draw(final_image)
-    sponsor_position = (10, canvas_height - 1 - fontLvl.size)
-    draw_text_with_shadow(draw_final, "Made with Shoshin.moe", sponsor_position, fontSponsor, text_color="white", shadow_color="black", offset=(3, 3))
+    # Assuming final_image is your final canvas and canvas_height is its height
+    canvas_width, canvas_height = final_image.size
+
+    # Load the Shoshin logo image
+    logo = Image.open('./static/shoshinlogo.png')
+    logo_width, logo_height = logo.size
+
+    # Resize the logo to 1/3 of its original size
+    new_logo_size = (logo_width // 3, logo_height // 3)
+    logo = logo.resize(new_logo_size, Image.LANCZOS)
+    logo_width, logo_height = logo.size
+
+    # Calculate the position for the logo to be at the bottom left corner with a 20-pixel margin
+    logo_position = (20, canvas_height - logo_height - 20)  # Adjust padding as needed
+
+    # Paste the logo image onto the canvas
+    final_image.paste(logo, logo_position, logo)  # Assuming the logo has an alpha channel for transparency
 
     final_image = apply_vignette(final_image, blur_radius_factor=0.1, enhance_factor=2.6)
     in_memory_file = io.BytesIO()
@@ -360,5 +430,13 @@ async def process_images(files, app: Quart):
         else:
             _file_url = f"https://cdn.shoshin.moe/{name_}"
 
+    byte_arr = io.BytesIO()
+    first_image.save(byte_arr, format='PNG')  # Use appropriate format like 'JPEG'
 
-    return {"image": _file_url, "name": name_text, "level": level_text, "yellow_text": yellow_text}
+    # Encode the byte array to base64
+    encoded_image = base64.b64encode(byte_arr.getvalue())
+
+    # Convert the base64 byte array to a string
+    encoded_string = encoded_image.decode('utf-8')
+
+    return {"image": _file_url, "name": name_text, "level": level_text, "yellow_text": yellow_text, "first_image": encoded_string}  # Return the base64 encoded image data
