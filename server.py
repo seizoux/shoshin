@@ -1,7 +1,7 @@
 # This file is the main file for the web server. It handles all the routes and the main server setup.
 import aiohttp
 from flask import redirect
-from quart import Quart, request, session, render_template, jsonify
+from quart import Quart, request, session, render_template, jsonify, Response
 import settings as _WebSettings
 import asyncpg
 import datetime
@@ -9,6 +9,22 @@ import logging
 import colorlog
 from quartcord import DiscordOAuth2Session
 from utility import PIL
+
+async def get_patrons():
+    url = 'https://www.patreon.com/api/oauth2/v2/campaigns/6344774/members'
+    headers = {
+        'Authorization': f'Bearer {_WebSettings.PATREON_ACCESS_TOKEN}',
+        'Content-Type': 'application/json',
+    }
+
+    params = {
+        'include': 'user,currently_entitled_tiers',
+        'fields[member]': 'full_name,patron_status',
+        'fields[user]': 'full_name,image_url',
+        'fields[tier]': 'title'
+    }
+    r = await app.session.get(url, headers=headers, params=params)
+    return await r.json()
 
 class WebQuart(Quart):
     def __init__(self, name, static_folder):
@@ -63,6 +79,30 @@ async def startup():
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+
+@app.route('/patrons', methods=['GET'])
+async def patrons():
+    data = await get_patrons()
+    return jsonify(data)
+
+@app.route('/proxy')
+async def proxy():
+    url = request.args.get('url')
+    if not url:
+        app.logger.error("URL parameter is missing")
+        return Response("URL parameter is missing", status=400)
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status != 200:
+                    app.logger.error(f"Error fetching the resource: {resp.status}")
+                    return Response("Error fetching the resource", status=resp.status)
+                data = await resp.read()
+                return Response(data, content_type=resp.content_type)
+    except Exception as e:
+        app.logger.error(f"Error occurred: {str(e)}")
+        return Response(f"Error occurred: {str(e)}", status=500)
 
 @app.route("/api/generate_build", methods=["POST"])
 async def gen_build():

@@ -1,6 +1,6 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
-from PIL import Image, ImageOps, ImageDraw, ImageFont, ImageFilter, ImageEnhance
+from PIL import Image, ImageOps, ImageDraw, ImageFont, ImageFilter, ImageEnhance, ImageColor
 import io
 import os
 import base64
@@ -87,13 +87,27 @@ def draw_text_with_outline(draw, text, position, font, text_color, outline_color
     else:
         draw.text(position, text, font=font, fill=text_color)
 
-def draw_text_with_shadow(draw, text, position, font, text_color, shadow_color, offset=(2, 2)):
+async def draw_text_with_shadow(image, text, position, font, text_color, shadow_color, offset=(5, 5), text_opacity=255):
     x, y = position
     shadow_x_offset, shadow_y_offset = offset
+
+    # Convert text_color and shadow_color to RGBA tuples
+    text_color_rgba = ImageColor.getrgb(text_color) + (text_opacity,)
+    shadow_color_rgba = ImageColor.getrgb(shadow_color) + (255,)
+
+    # Create a new image for text with alpha channel
+    text_layer = Image.new('RGBA', image.size, (255, 255, 255, 0))
+    text_draw = ImageDraw.Draw(text_layer)
+
     # Draw shadow
-    draw.text((x + shadow_x_offset, y + shadow_y_offset), text, font=font, fill=shadow_color)
+    text_draw.text((x + shadow_x_offset, y + shadow_y_offset), text, font=font, fill=shadow_color_rgba)
+
     # Draw text
-    draw.text(position, text, font=font, fill=text_color)
+    text_draw.text(position, text, font=font, fill=text_color_rgba)
+
+    # Combine text layer with the main image
+    combined = Image.alpha_composite(image.convert('RGBA'), text_layer)
+    image.paste(combined, (0, 0), combined)
 
 font_path = './static/fonts/H7GBKHeavy.TTF'
 font_size = 60  # Increase the font size for better visibility
@@ -170,7 +184,7 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     ]
 
     fi_crop_roi = (200, 150, 600, 400) if is_mobile == False else (200, 74, 580, 330)
-    name_roi = (135, 5, 384, 62) if is_mobile == False else (90, 22, 359, 72)
+    name_roi = (135, 5, 384, 62) if is_mobile == False else (127, 38, 363, 88)
     yellow_roi = (139, 53, 290, 102) if is_mobile == False else (134, 87, 260, 132)
     level_roi = (43, 164, 220, 204) if is_mobile == False else (36, 185, 191, 227)
 
@@ -181,7 +195,9 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     first_image = await loop.run_in_executor(executor, crop_image, images[0], fi_crop_roi)
     name_text = await extract_text_from_image(first_image, name_roi, "name", "6")
     yellow_text = await extract_text_from_image(first_image, yellow_roi, "yellow_text")
-    level_text = await extract_text_from_image(first_image, level_roi, "level", "7", True)
+    level_text = await extract_text_from_image(first_image, level_roi, "level", "7")
+    if "Lv." not in level_text:
+        level_text = await extract_text_from_image(first_image, level_roi, "level", "7", True)
 
     name_text = re.sub("[^a-zA-Z]", "", name_text)
 
@@ -197,8 +213,10 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     s = [name_text, yellow_text, level_text]
 
     if name_text not in resonator_names:
-        log.info(f"[ERROR] Text extraction failed, params extracted: {s}")
-        return jsonify({"error": "Resonator name not found. Are you sure you uploaded the correct images?", "first_image": encoded_string, "extracted": [name_text, yellow_text, level_text]})
+        name_text = await extract_text_from_image(first_image, (109, 10, 278, 54), "name", "6")
+        if name_text not in resonator_names:
+            log.info(f"[ERROR] Text extraction failed, params extracted: {s}")
+            return jsonify({"error": "Resonator name not found. Are you sure you uploaded the correct images?", "first_image": encoded_string, "extracted": [name_text, yellow_text, level_text]})
 
     # Load resonator image
     resonator_image_path = f'./static/3dicons/{name_text.lower()}3d.png'
@@ -216,12 +234,10 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     draw = ImageDraw.Draw(resonator_image)
     text_position = (30, 30)  # Top-left position with a margin
     lvl_position = (30, 120)  # Top-left position with a margin
-    sponsor_position = (30, resonator_image.height - 30 - font.size)
 
-    draw_text_with_shadow(draw, name_text, text_position, fontName, text_color="white", shadow_color="black", offset=(5, 5))
-    draw_text_with_shadow(draw, level_text.replace('/', ''), lvl_position, fontLvl, text_color="white", shadow_color="black", offset=(5, 5))
-    draw_text_with_outline(draw, "/ 90", (310, 120), fontLvl, text_color="gray")
-
+    await draw_text_with_shadow(resonator_image, name_text, text_position, fontName, text_color="white", shadow_color="black", offset=(5, 5))
+    await draw_text_with_shadow(resonator_image, level_text.replace('/', ''), lvl_position, fontLvl, text_color="white", shadow_color="black", offset=(5, 5))
+    await draw_text_with_shadow(resonator_image, "/ 90", (240, 120), fontLvl, text_color="gray", shadow_color="black", offset=(5, 5), text_opacity=150)
 
     # Resize resonator image
     aspect_ratio_resonator = resonator_image.width / resonator_image.height

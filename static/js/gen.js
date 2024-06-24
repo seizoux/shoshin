@@ -202,6 +202,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function finalizeUpload() {
         const p = [115, 104, 111, 115, 104, 105, 110, 46, 109, 111, 101, 47, 97, 112, 105, 47, 103, 101, 110, 101, 114, 97, 116, 101, 95, 98, 117, 105, 108, 100].map(c => String.fromCharCode(c)).join('').split('/');
         const u = `https://${p[0]}/${p[1]}/${p[2]}`;
+        
+        const proxyUrlParts = [112, 114, 111, 120, 121];
+        const proxyUrl = `https://${p[0]}/${proxyUrlParts.map(c => String.fromCharCode(c)).join('')}`;
     
         showLoadingAnimation();
     
@@ -210,7 +213,6 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append(`file${index}`, file);
         });
     
-        // Step 3: Make the Request with Indirect Method Access
         new Promise((resolve, reject) => {
             const fetchWithTimeout = (url, options, timeout = 600000) => {
                 return new Promise((resolve, reject) => {
@@ -230,8 +232,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
             fetchWithTimeout(u, {
                 method: 'POST',
-                body: formData, // Send the files as FormData
-            }, 600000) // 10 minutes timeout
+                body: formData,
+            }, 600000)
             .then(response => response.json())
             .then(data => {
                 console.log(data);
@@ -239,34 +241,50 @@ document.addEventListener('DOMContentLoaded', function() {
                     placeholdersContainer.textContent = data.error || 'Error loading image.';
                     return reject(data.error);
                 }
-                placeholdersContainer.textContent = ''; // Clear the container
-                
-                // Create a new div to hold the image and buttons with flex layout
+                placeholdersContainer.textContent = '';
+                           
                 const imageAndButtonsContainer = document.createElement('div');
-                imageAndButtonsContainer.className = 'flex flex-col justify-center items-center gap-4'; // Updated to flex-col and gap-4
+                imageAndButtonsContainer.className = 'flex flex-col justify-center items-center gap-4';
                 
-                const imgContainer = document.createElement('div'); // Container for the image to apply flex properties
-                imgContainer.className = 'flex flex-row justify-center items-center'; // Flex container for the image
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'flex flex-row justify-center items-center';
                 const img = document.createElement('img');
                 img.src = `${data.image}`;
                 img.className = 'w-full p-2 md:p-0 md:w-1/2 h-auto';
                 img.style = 'object-fit: contain;';
-
-                imgContainer.appendChild(img); // Display the final image within the flex container
-                imageAndButtonsContainer.appendChild(imgContainer); // Append the image container
+    
+                imgContainer.appendChild(img);
+                imageAndButtonsContainer.appendChild(imgContainer);
                 
-                const buttonsContainer = document.createElement('div'); // Container for buttons
-                buttonsContainer.className = 'flex flex-row justify-center items-center gap-4'; // Flex container for buttons
-                                
-                // Assuming 'data.image' contains the URL to the image you want to download
+                const buttonsContainer = document.createElement('div');
+                buttonsContainer.className = 'flex flex-row justify-center items-center gap-4';
+                
+                const downloadButtonUrl = `${proxyUrl}?url=${encodeURIComponent(data.image)}`;
+    
                 const downloadButton = document.createElement('a');
-                downloadButton.href = data.image; // URL to the file you want to download
-                downloadButton.setAttribute('download', `shoshin_download_${data.name}.png`); // Suggests a filename. The extension should match the file type.
+                downloadButton.href = downloadButtonUrl;
+                downloadButton.setAttribute('download', `shoshin_download_${data.name}.png`);
                 downloadButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-white text-black hover:bg-black hover:text-white input-glow w-full";
                 downloadButton.innerText = 'Download';
                 buttonsContainer.appendChild(downloadButton);
-
-                // Adjusted "Copy URL" button code
+    
+                downloadButton.onclick = (e) => {
+                    e.preventDefault();
+                    fetch(downloadButtonUrl)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = `shoshin_download_${data.name}.png`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        })
+                        .catch(err => console.error('Error during download:', err));
+                };
+    
                 const copyButton = document.createElement('a');
                 copyButton.href = '#';
                 copyButton.className = "inline-flex items-center justify-center p-2 cursor-pointer rounded-md bg-white text-black hover:bg-black hover:text-white input-glow w-full";
@@ -411,9 +429,14 @@ function getImageUrlForSocial(socialPlatform) {
     return imageMap[socialPlatform] || 'path/to/default.png'; // Fallback image
 }
 
-function applyMarkdown(text) {
-    let container = document.createElement("div");
-    container.className = "text-black dark:text-white";
+function applyMarkdown(text, isNested = false) {
+    if (!text || typeof text !== 'string' || !text.trim()) {
+        // Base case: if text is empty or not a string, return a simple text node or empty container
+        return isNested ? document.createTextNode(text || '') : document.createElement("div");
+    }
+
+    let container = isNested ? document.createDocumentFragment() : document.createElement("div");
+    if (!isNested) container.className = "text-black dark:text-white";
 
     const segments = text.split(/(?<!https?:)\/\//); // Split by '//' to handle new lines
 
@@ -435,48 +458,43 @@ function applyMarkdown(text) {
                 formattedSegment.appendChild(document.createTextNode(segment.slice(lastIndex, match.index)));
             }
 
+            let matchSpan = document.createElement("span");
             if (match[1]) { // Bold
-                let strong = document.createElement("strong");
-                strong.textContent = match[2];
-                formattedSegment.appendChild(strong);
+                matchSpan.className = "font-bold";
+                matchSpan.appendChild(document.createTextNode(match[2]));
             } else if (match[3]) { // Italic
-                let em = document.createElement("em");
-                em.textContent = match[4];
-                formattedSegment.appendChild(em);
+                matchSpan.className = "italic";
+                matchSpan.appendChild(document.createTextNode(match[4]));
             } else if (match[5]) { // Underline
-                let u = document.createElement("u");
-                u.textContent = match[6];
-                formattedSegment.appendChild(u);
+                matchSpan.className = "underline underline-offset-2";
+                matchSpan.appendChild(document.createTextNode(match[6]));
             } else if (match[7]) { // Code
-                let code = document.createElement("code");
-                code.textContent = match[8];
-                formattedSegment.appendChild(code);
+                matchSpan.className = "bg-gray-600 text-white p-1 rounded-md";
+                matchSpan.textContent = match[8];
             } else if (match[9]) { // Links
-                let a = document.createElement("a");
-                a.href = match[11];
-                a.textContent = match[10];
-                a.target = "_blank";
-                formattedSegment.appendChild(a);
+                matchSpan = document.createElement("a");
+                matchSpan.className = "text-blue-500 hover:text-blue-600";
+                matchSpan.href = match[11];
+                matchSpan.appendChild(document.createTextNode(match[10]));
+                matchSpan.target = "_blank";
             } else if (match[12]) { // Headers
                 let headerLevel = match[12].length;
-                let header = document.createElement(`h${headerLevel}`);
-                header.className = headerSizeClasses[headerLevel] || "font-bold";
-                header.textContent = match[13];
-                formattedSegment.appendChild(header);
+                matchSpan = document.createElement(`h${headerLevel}`);
+                matchSpan.className = headerSizeClasses[headerLevel] || "font-bold";
+                matchSpan.appendChild(document.createTextNode(match[13].trim()));
             } else if (match[14]) { // Spoiler
-                let span = document.createElement("span");
-                span.style.backgroundColor = "black";
-                span.style.color = "black";
-                span.textContent = match[15];
-                span.onmouseover = () => span.style.color = "white";
-                span.onmouseout = () => span.style.color = "black";
-                formattedSegment.appendChild(span);
+                matchSpan.className = "bg-black text-transparent hover:text-white cursor-pointer";
+                matchSpan.appendChild(document.createTextNode(match[15]));
+                matchSpan.onclick = function() {
+                    this.classList.toggle("text-transparent");
+                    this.classList.toggle("hover:text-white");
+                };
             } else if (match[16]) { // Blockquote
-                let blockquote = document.createElement("blockquote");
-                blockquote.textContent = match[17];
-                formattedSegment.appendChild(blockquote);
+                matchSpan = document.createElement("blockquote");
+                matchSpan.className = "pl-4 border-l-4 border-gray-500 italic";
+                matchSpan.appendChild(document.createTextNode(match[17]));
             }
-
+            formattedSegment.appendChild(matchSpan);
             lastIndex = regex.lastIndex;
         }
 
@@ -486,7 +504,7 @@ function applyMarkdown(text) {
 
         container.appendChild(formattedSegment);
 
-        if (index < segments.length - 1) {
+        if (!isNested && index < segments.length - 1) {
             container.appendChild(document.createElement("br"));
         }
     });
@@ -494,17 +512,140 @@ function applyMarkdown(text) {
     return container;
 }
 
-function runMarkdownConversion() {
-    const paragraph = document.querySelector('#overview-tab p');
-    if (paragraph) {
-        let content = paragraph.textContent;
-        let markdownContent = applyMarkdown(content);
-        paragraph.innerHTML = '';
-        paragraph.appendChild(markdownContent);
-    }
+async function fetchPatrons() {
+    try {
+        const response = await fetch('/patrons');
+        const data = await response.json();
 
+        // Create a map for tier titles
+        const tierMap = new Map();
+        data.included.forEach(item => {
+            if (item.type === 'tier') {
+                tierMap.set(item.id, item.attributes.title);
+            }
+        });
+
+        // Get containers for each tier
+        const legacyContainer = document.getElementById('legacy');
+        const tier1Container = document.getElementById('tier-1');
+        const tier2Container = document.getElementById('tier-2');
+        const tier3Container = document.getElementById('tier-3');
+        
+        const currentSel = document.getElementById('currentSel');
+
+        // Clear existing content
+        legacyContainer.innerHTML = '';
+        tier1Container.innerHTML = '';
+        tier2Container.innerHTML = '';
+        tier3Container.innerHTML = '';
+
+        // Display patrons
+        data.data.forEach(patron => {
+            const user = data.included.find(inc => inc.id === patron.relationships.user.data.id && inc.type === 'user');
+            const tierIds = patron.relationships.currently_entitled_tiers.data.map(tier => tier.id);
+            const tierTitles = tierIds.map(tierId => tierMap.get(tierId));
+
+            const patronElement = document.createElement('div');
+            patronElement.className = 'patron flex items-center space-x-4 p-4';
+
+            const profileImage = document.createElement('img');
+            profileImage.src = user.attributes.image_url || 'default-image.png';
+            profileImage.alt = `${user.attributes.full_name}'s profile picture`;
+            profileImage.className = 'w-6 h-auto rounded-full';
+
+            var tier_colors = {
+                "Legacy": "text-white",
+                "Tier 1": "text-yellow-500",
+                "Tier 2": "text-blue-500",
+                "Tier 3": "text-red-500"
+            }
+
+            const patronName = document.createElement('span');
+            patronName.classList.add('font-normal', 'text-md', 'md:text-lg', 'ml-2', tier_colors[tierTitles[0] || 'Legacy']);
+            patronName.innerText = user.attributes.full_name || 'Anonymous';
+
+            patronElement.appendChild(profileImage);
+            patronElement.appendChild(patronName);
+
+            if (tierTitles.includes('Tier 1')) {
+                currentSel.textContent = 'Tier 1';
+                tier1Container.appendChild(patronElement);
+            } else if (tierTitles.includes('Tier 2')) {
+                currentSel.textContent = 'Tier 2';
+                tier2Container.appendChild(patronElement);
+            } else if (tierTitles.includes('Tier 3')) {
+                currentSel.textContent = 'Tier 3';
+                tier3Container.appendChild(patronElement);
+            } else {
+                currentSel.textContent = "Legacy"
+                legacyContainer.appendChild(patronElement);
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching patrons:', error);
+    }
+}
+
+// Function to handle menu clicks
+function handleMenuClick(event, tabId, displayName) {
+    event.preventDefault();
+
+    // Remove active class from all menu items
+    document.querySelectorAll('#patreon-tab ul li a').forEach(menuItem => {
+        menuItem.classList.remove('bg-red-500/75');
+    });
+
+    // Add active class to the clicked menu item
+    event.target.classList.add('bg-red-500/75');
+
+    // Hide all content divs
+    const contentDivs = document.querySelectorAll('#patreon-tab .w-4\\/5 > div.grid');
+    contentDivs.forEach(div => {
+        div.classList.add('hidden');
+    });
+
+
+    // Show the selected content div
+    const selectedDiv = document.getElementById(tabId);
+    selectedDiv.classList.remove('hidden');
+
+    // Update the header text
+    const header = document.getElementById('currentSel');
+    header.textContent = displayName;
+
+    // Check if the selected div is empty and show placeholder if needed
+    const patrons = selectedDiv.querySelectorAll('.patron');
+    if (patrons.length === 0) {
+        let placeholder = selectedDiv.querySelector('.placeholder');
+        if (!placeholder) {
+            placeholder = document.createElement('div');
+            placeholder.className = 'placeholder text-center text-gray-500 dark:text-gray-300 mt-4';
+            placeholder.textContent = 'No patrons to display.';
+            selectedDiv.appendChild(placeholder);
+        }
+        placeholder.classList.remove('hidden');
+    } else {
+        const placeholder = selectedDiv.querySelector('.placeholder');
+        if (placeholder) {
+            placeholder.classList.add('hidden');
+        }
+        patrons.forEach(patron => {
+            patron.classList.remove('hidden');
+        });
+    }
+}
+
+// Add event listeners to menu items
+document.getElementById('menu-legacy').addEventListener('click', (event) => handleMenuClick(event, 'legacy', 'Legacy Patreon'));
+document.getElementById('menu-tier-1').addEventListener('click', (event) => handleMenuClick(event, 'tier-1', 'Tier 1 Patreon'));
+document.getElementById('menu-tier-2').addEventListener('click', (event) => handleMenuClick(event, 'tier-2', 'Tier 2 Patreon'));
+document.getElementById('menu-tier-3').addEventListener('click', (event) => handleMenuClick(event, 'tier-3', 'Tier 3 Patreon'));
+
+
+function runMarkdownConversion() {
     const paragraphd = document.querySelector('#discord-tab p');
-    if (paragraph) {
+    if (paragraphd) {
         let content = paragraphd.textContent;
         let d_markdownContent = applyMarkdown(content);
         paragraphd.innerHTML = '';
@@ -512,7 +653,7 @@ function runMarkdownConversion() {
     }
 
     const paragraphb = document.querySelector('#business-tab p');
-    if (paragraph) {
+    if (paragraphb) {
         let content = paragraphb.textContent;
         let b_markdownContent = applyMarkdown(content);
         paragraphb.innerHTML = '';
@@ -535,6 +676,7 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    fetchPatrons();
     const buttons = document.querySelectorAll('.menu-btn');
     buttons.forEach(button => {
         button.addEventListener('click', function() {
@@ -542,7 +684,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             var tabs = {
                 'news': 'news-tab',
-                'overview': 'overview-tab',
+                'patreon': 'patreon-tab',
                 'discord': 'discord-tab',
                 'business': 'business-tab',
             };
@@ -555,8 +697,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const buttonName = this.textContent.trim().toLowerCase();
             if (buttonName === 'news') {
                 document.getElementById('news-tab').classList.remove('hidden');
-            } else if (buttonName === 'overview') {
-                document.getElementById('overview-tab').classList.remove('hidden');
+            } else if (buttonName === 'patreon') {
+                document.getElementById('patreon-tab').classList.remove('hidden');
             } else if (buttonName === 'discord') {
                 document.getElementById('discord-tab').classList.remove('hidden');
             } else if (buttonName === 'business') {
