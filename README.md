@@ -13,7 +13,7 @@
 
 ## Overview
 
-**Shoshin** is a website designed to bring together all the data about gacha games. The goal of Shoshin is to create a comprehensive platform that includes various tools useful for gacha game players, a forum for discussions, and much more. Currently, the project features a tool that allows users to generate a single image from multiple screenshots to share their builds on the game "Wuthering Waves."
+**Shoshin** is a website designed to bring together all the data about Wuthering Waves. The goal of Shoshin is to create a comprehensive platform that includes various tools useful for Wuthering Waves players, a forum for discussions, and much more. Currently, the project features a tool that allows users to generate a single image from multiple screenshots to share their builds.
 
 ## Features
 
@@ -21,7 +21,7 @@
 - **Screenshot Compilation Tool**: Users can generate a single image from multiple screenshots to easily share their builds in "Wuthering Waves."
 
 ### Future Features
-- **Comprehensive Gacha Tools**: A suite of tools to assist players in various gacha games, from tracking pulls to optimizing builds.
+- **Comprehensive Gacha Tools**: A suite of tools to assist players in Wuthering Waves, from tracking pulls to optimizing builds.
 - **Forums**: A platform where players can discuss strategies, share tips, and build a community.
 - **User Profiles**: Personalized profiles for users to showcase their game progress and interact with others.
 - **Game Data Integration**: Incorporation of detailed game data to help players make informed decisions.
