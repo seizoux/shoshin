@@ -3,35 +3,17 @@ const placeholdersContainer = document.getElementById('filePlaceholders');
 // Declare a global array to store uploaded files
 let uploadedFiles = [];
 
-// Define an array of texts for each placeholder
-const placeholderTexts = [
-    "MAIN",
-    "WEAPON",
-    "MAIN ECHO",
-    "2ND ECHO",
-    "3RD ECHO",
-    "4TH ECHO",
-    "5TH ECHO",
-    "SKILLS",
-    "RS. CHAINS"
-    // Add more descriptions as needed
-];
+// Function to load JSON file
+async function loadLocalizationFile() {
+    const response = await fetch('https://shoshin.moe/static/locale.json');
+    return await response.json();
+}
 
-const stepTips = [
-    "Upload the main section of your resonator page (the first icon on the left column).",
-    "Upload the weapon section (the second icon on the left column).",
-    "Upload the Main Echo equipped on your Resonator (the top one on the echoes equipped, generally the first COST 4).",
-    "Upload the 2nd Echo equipped on your Resonator.",
-    "Upload the 3rd Echo equipped on your Resonator.",
-    "Upload the 4th Echo equipped on your Resonator.",
-    "Upload the 5th Echo equipped on your Resonator.",
-    "Upload the Skills section of your Resonator (the 4th icon on the left column).",
-    "Upload the Resonance Chains section of your resonator (the 5th icon on the left column)."
-];
-
-document.addEventListener('DOMContentLoaded', function() {
-    const placeholdersContainer = document.getElementById('filePlaceholders');
-    let currentStep = 0;
+// Function to apply localization
+function applyLocalization(localization, language) {
+    const texts = localization[language] || localization['en']; // Default to English if language not found
+    const placeholderTexts = texts.placeholderTexts;
+    const stepTips = texts.stepTips;
 
     // Function to update the #stepTip content with step number
     function updateStepTip(currentStep) {
@@ -319,6 +301,16 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('fileUpload').addEventListener('change', handleFileUpload);
 
     initializePlaceholders();
+};
+
+// Detect user language (this can be improved to detect from browser settings or user preference)
+const userLanguage = navigator.language.slice(0, 2) || 'en'; // e.g., 'en', 'es', 'it'
+
+// Load and apply the localization file
+loadLocalizationFile().then(localization => {
+    applyLocalization(localization, userLanguage);
+}).catch(error => {
+    console.error('Error loading localization file:', error);
 });
 
 function formatHumanReadableDate(dateString) {

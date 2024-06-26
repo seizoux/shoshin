@@ -21,7 +21,8 @@ build/
 # JavaScript
 node_modules/
 *.log
-*.json
+package.json
+packlage-lock.json
 
 # CSS
 *.css.map
