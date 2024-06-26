@@ -9,6 +9,20 @@ import logging
 import colorlog
 from quartcord import DiscordOAuth2Session
 from utility import PIL
+import sentry_sdk
+from sentry_sdk.integrations.quart import QuartIntegration
+
+sentry_sdk.init(
+    dsn=_WebSettings.SENTRY_DSN,
+    integrations=[QuartIntegration()],
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
 
 async def get_patrons():
     url = 'https://www.patreon.com/api/oauth2/v2/campaigns/6344774/members'
