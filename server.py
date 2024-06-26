@@ -137,9 +137,11 @@ async def gen_build():
         log.info(f"[ERROR] Error in Generating Build: {e}")
         return jsonify({"error": str(e)})
 
-@app.route("/yinlin/privacy")
-async def privacy():
-    return await render_template("privacy.html")
+@app.route("/<lang>/yinlin/privacy")
+async def privacy(lang):
+    supported_languages = ['en', 'es', 'it']  # Add more supported languages as needed
+    lang = lang if lang in supported_languages else 'en'
+    return await render_template(f"{lang}/privacy.html")
 
 @app.route("/wuwa/news/publish", methods=["POST"])
 async def wuwanews():
