@@ -123,15 +123,9 @@ async def gen_build():
         log.info(f"[ERROR] Error in Generating Build: {e}")
         return jsonify({"error": str(e)})
 
-@app.route("/privacy")
+@app.route("/yinlin/privacy")
 async def privacy():
     return await render_template("privacy.html")
-
-@app.route("/wuwa/generate")
-async def wuwagen():
-    news_entry = await app.pool.fetch("SELECT * FROM news ORDER BY date DESC")
-    return await render_template("wuwagen.html", news_entry=news_entry)
-
 
 @app.route("/wuwa/news/publish", methods=["POST"])
 async def wuwanews():
@@ -157,4 +151,20 @@ async def wuwanews():
 
 @app.route("/", methods=["GET"])
 async def home():
-    return redirect("https://shoshin.moe/wuwa/generate")
+    user_language = request.headers.get('Accept-Language', 'en').split(',')[0]
+    language_map = {
+        'en': 'https://shoshin.moe/en',
+        'es': 'https://shoshin.moe/es',
+        'it': 'https://shoshin.moe/it'
+        # Add more language mappings as needed
+    }
+    # Find the matching URL or default to English
+    redirect_url = language_map.get(user_language[:2], 'https://shoshin.moe/en')
+    return redirect(redirect_url)
+
+@app.route("/<lang>")
+async def home_lang(lang):
+    supported_languages = ['en', 'es', 'it']  # Add more supported languages as needed
+    lang = lang if lang in supported_languages else 'en'
+    news_entry = await app.pool.fetch("SELECT * FROM news ORDER BY date DESC")
+    return await render_template(f"{lang}/wuwagen.html", news_entry=news_entry)

@@ -1301,6 +1301,10 @@ video {
   font-style: italic;
 }
 
+.leading-loose {
+  line-height: 2;
+}
+
 .leading-normal {
   line-height: 1.5;
 }

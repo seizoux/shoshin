@@ -60,8 +60,6 @@ async def extract_text_from_image(image, roi, debug_label="", psm="6", mob=False
     
     pil_image = image.crop(roi)
     pil_image = ImageOps.grayscale(pil_image)
-    debug_image_path = f'./debug_{debug_label}.png'
-    pil_image.save(debug_image_path)
     config = f'--psm 6'
     text = pytesseract.image_to_string(pil_image, config=config, lang='eng')
     return text.strip()
@@ -188,8 +186,10 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     yellow_roi = (139, 53, 290, 102) if is_mobile == False else (134, 87, 260, 132)
     level_roi = (43, 164, 220, 204) if is_mobile == False else (36, 185, 191, 227)
 
-    # Load images
+    # Load images and resize them
     images = await loop.run_in_executor(executor, lambda: [Image.open(io.BytesIO(files[file].read())) for file in files])
+    target_size = (2560, 1440)
+    images = await loop.run_in_executor(executor, lambda: [image.resize(target_size) if image.size != target_size else image for image in images])
 
     # Perform OCR
     first_image = await loop.run_in_executor(executor, crop_image, images[0], fi_crop_roi)
@@ -210,12 +210,10 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     # Convert the base64 byte array to a string
     encoded_string = encoded_image.decode('utf-8')
 
-    s = [name_text, yellow_text, level_text]
-
     if name_text not in resonator_names:
         name_text = await extract_text_from_image(first_image, (109, 10, 278, 54), "name", "6")
         if name_text not in resonator_names:
-            log.info(f"[ERROR] Text extraction failed, params extracted: {s}")
+            log.info(f"[ERROR] Text extraction failed, params extracted: {name_text}, {yellow_text}, {level_text}")
             return jsonify({"error": "Resonator name not found. Are you sure you uploaded the correct images?", "first_image": encoded_string, "extracted": [name_text, yellow_text, level_text]})
 
     # Load resonator image
@@ -245,9 +243,7 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     resized_resonator_image = await loop.run_in_executor(executor, resonator_image.resize, (new_resonator_width, canvas_height), Image.LANCZOS)
 
     # Crop images
-
     sc_roi = (225, 159, 225 + 570, 159 + 1016) if is_mobile == False else (234, 104, 758, 895)
-
     second_image = await loop.run_in_executor(executor, crop_image, images[1], sc_roi)
     first_original_cropped = await loop.run_in_executor(executor, crop_image, images[0], (510, 7, 2190, 140))
 
