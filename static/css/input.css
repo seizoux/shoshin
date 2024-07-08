@@ -82,3 +82,18 @@ body.dark .bg-fade-bottom::after {
 #selectionIndicator {
   transition: left 0.5s ease, top 0.5s ease; /* Adjust time as needed */
 }
+
+.button-hover-effect {
+  background: linear-gradient(to right, #3b82f6 50%, #1d4ed8 50%);
+  background-size: 200% 100%;
+  background-position: left bottom;
+  transition: background-position 2s;
+}
+.button-hover-effect:hover {
+  background-position: right bottom;
+}
+
+#googleSignInButton {
+  display: flex;
+  justify-content: center;
+}

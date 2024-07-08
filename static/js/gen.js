@@ -3,18 +3,34 @@ const placeholdersContainer = document.getElementById('filePlaceholders');
 // Declare a global array to store uploaded files
 let uploadedFiles = [];
 
-// Function to load JSON file
-async function loadLocalizationFile() {
-    const response = await fetch('https://shoshin.moe/static/locale.json');
-    return await response.json();
-}
+// Define an array of texts for each placeholder
+const placeholderTexts = [
+    "MAIN",
+    "WEAPON",
+    "MAIN ECHO",
+    "2ND ECHO",
+    "3RD ECHO",
+    "4TH ECHO",
+    "5TH ECHO",
+    "SKILLS",
+    "RS. CHAINS"
+    // Add more descriptions as needed
+];
+const stepTips = [
+    "Upload the main section of your resonator page (the first icon on the left column).",
+    "Upload the weapon section (the second icon on the left column).",
+    "Upload the Main Echo equipped on your Resonator (the top one on the echoes equipped, generally the first COST 4).",
+    "Upload the 2nd Echo equipped on your Resonator.",
+    "Upload the 3rd Echo equipped on your Resonator.",
+    "Upload the 4th Echo equipped on your Resonator.",
+    "Upload the 5th Echo equipped on your Resonator.",
+    "Upload the Skills section of your Resonator (the 4th icon on the left column).",
+    "Upload the Resonance Chains section of your resonator (the 5th icon on the left column)."
+];
 
-// Function to apply localization
-function applyLocalization(localization, language) {
-    const texts = localization[language] || localization['en']; // Default to English if language not found
-    const placeholderTexts = texts.placeholderTexts;
-    const stepTips = texts.stepTips;
-
+document.addEventListener('DOMContentLoaded', function() {
+    const placeholdersContainer = document.getElementById('filePlaceholders');
+    let currentStep = 0;
     // Function to update the #stepTip content with step number
     function updateStepTip(currentStep) {
         const stepTipElement = document.getElementById('stepTip');
@@ -72,11 +88,9 @@ function applyLocalization(localization, language) {
         // Create a new flex container for both line containers
         const flexContainer = document.createElement('div');
         flexContainer.className = 'flex flex-col gap-2'; // Flex column with gap
-
         // Append line containers to the new flex container
         flexContainer.appendChild(firstLineContainer);
         flexContainer.appendChild(secondLineContainer);
-
         // Append the new flex container to the placeholders container
         placeholdersContainer.appendChild(flexContainer);
         updateStepTip(0);
@@ -212,22 +226,12 @@ function applyLocalization(localization, language) {
                 });
             };
     
-            fetchWithTimeout(u, {
-                method: 'POST',
-                body: formData,
-            }, 600000)
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                if (data.error) {
-                    placeholdersContainer.textContent = data.error || 'Error loading image.';
-                    return reject(data.error);
-                }
+            const displayImageAndButtons = (data) => {
                 placeholdersContainer.textContent = '';
-                           
+    
                 const imageAndButtonsContainer = document.createElement('div');
                 imageAndButtonsContainer.className = 'flex flex-col justify-center items-center gap-4';
-                
+    
                 const imgContainer = document.createElement('div');
                 imgContainer.className = 'flex flex-row justify-center items-center';
                 const img = document.createElement('img');
@@ -237,10 +241,10 @@ function applyLocalization(localization, language) {
     
                 imgContainer.appendChild(img);
                 imageAndButtonsContainer.appendChild(imgContainer);
-                
+    
                 const buttonsContainer = document.createElement('div');
                 buttonsContainer.className = 'flex flex-row justify-center items-center gap-4';
-                
+    
                 const downloadButtonUrl = `${proxyUrl}?url=${encodeURIComponent(data.image)}`;
     
                 const downloadButton = document.createElement('a');
@@ -283,11 +287,80 @@ function applyLocalization(localization, language) {
                     });
                 };
                 buttonsContainer.appendChild(copyButton); // Append the copy URL button within the flex container
-                
+    
                 imageAndButtonsContainer.appendChild(buttonsContainer); // Append the buttons container to the main container
-                
+    
                 placeholdersContainer.appendChild(imageAndButtonsContainer); // Append the new div to the main container
-                
+            };
+    
+            fetchWithTimeout(u, {
+                method: 'POST',
+                body: formData,
+            }, 600000)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                if (data.error) {
+                    if (data.hasOwnProperty('confirm')) {
+                        const confirmationContainer = document.createElement('div');
+                        confirmationContainer.className = 'flex flex-col justify-center items-center gap-4';
+    
+                        const confirmMessage = document.createElement('div');
+                        confirmMessage.className = 'text-black dark:text-white font-bold';
+                        confirmMessage.innerText = data.confirm;
+                        
+                        const buttonsRow = document.createElement('div');
+                        buttonsRow.className = 'flex flex-row justify-center items-center gap-4';
+    
+                        const yesButton = document.createElement('button');
+                        yesButton.className = 'bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded';
+                        yesButton.innerText = "Yes, it's me!";
+                        yesButton.onclick = () => {
+                            showLoadingAnimation();
+                            const confirmUrl = `https://${p[0]}/${p[1]}/generate_build`;
+                            const confirmPayload = {
+                                confirm: true,
+                            };
+                        
+                            // Convert confirmPayload to JSON string and append it to FormData
+                            formData.append('confirmPayload', JSON.stringify(confirmPayload));
+                        
+                            fetchWithTimeout(confirmUrl, {
+                                method: 'POST',
+                                body: formData
+                            }, 600000)
+                            .then(response => response.json())
+                            .then(confirmData => {
+                                console.log(confirmData);
+                                displayImageAndButtons(confirmData);
+                            })
+                            .catch(err => console.error('Error during confirmation:', err));
+                        };
+    
+                        const noButton = document.createElement('button');
+                        noButton.className = 'bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded';
+                        noButton.innerText = "Not at all..";
+                        noButton.onclick = () => {
+                            window.location.reload();
+                        };
+    
+                        buttonsRow.appendChild(yesButton);
+                        buttonsRow.appendChild(noButton);
+    
+                        confirmationContainer.appendChild(confirmMessage);
+                        confirmationContainer.appendChild(buttonsRow);
+    
+                        placeholdersContainer.textContent = '';
+                        placeholdersContainer.appendChild(confirmationContainer);
+    
+                        return reject(data.error);
+                    }
+                    placeholdersContainer.textContent = data.error || 'Error loading image.';
+                    return reject(data.error);
+                }
+    
+                displayImageAndButtons(data);
+    
                 resolve(data);
             })
             .catch(error => {
@@ -301,16 +374,6 @@ function applyLocalization(localization, language) {
     document.getElementById('fileUpload').addEventListener('change', handleFileUpload);
 
     initializePlaceholders();
-};
-
-// Detect user language (this can be improved to detect from browser settings or user preference)
-const userLanguage = navigator.language.slice(0, 2) || 'en'; // e.g., 'en', 'es', 'it'
-
-// Load and apply the localization file
-loadLocalizationFile().then(localization => {
-    applyLocalization(localization, userLanguage);
-}).catch(error => {
-    console.error('Error loading localization file:', error);
 });
 
 function formatHumanReadableDate(dateString) {

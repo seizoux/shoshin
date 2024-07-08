@@ -4,18 +4,18 @@
     <meta name="theme-color" content="#ffffff"/>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Wuthering Waves Build | Genera Immagine</title>
-    <meta name="description" content="Genera e condividi facilmente e velocemente la tua build del personaggio di Wuthering Waves."/>
+    <title>Wuthering Waves Build | Generate Image</title>
+    <meta name="description" content="Generate and share your Wuthering Waves character build easily and faster."/>
     <meta name="keywords" content="Wuthering Waves, character build, generator, image"/>
     <meta name="author" content="seizoux" />
-    <meta name='og:title' content="WuWa Build | Genera un'immagine da condividere con i tuoi amici e mostra la tua build come mai prima!">
-    <meta name='og:url' content='https://shoshin.moe/it'>
+    <meta name='og:title' content='WuWa Build | Generate an image to be shared with your friends and flex your build like never before!'>
+    <meta name='og:url' content='https://shoshin.moe/en'>
     <meta name='og:image' content='https://shoshin.moe/static/favicon_wuwa.png'>
     <meta name='og:site_name' content='shoshin.moe'>
-    <meta name='og:description' content="Recupera una build del personaggio dal tuo account tramite il tuo UID, lascia che le cose losche si svolgano sullo sfondo generando un'immagine fantastica con i dati e condividila con i tuoi amici!">
+    <meta name='og:description' content='Retreive a character build from your account by your UID, let the tricky-sneaky stuff in the background generate a cool image with the data and share it with your friends!'>
     <meta property="og:image" content="https://shoshin.moe/static/favicon_wuwa.png"/>
-    <meta name='language' content='IT'>
-    <meta name='url' content='https://www.shoshin.moe/it'>
+    <meta name='language' content='EN'>
+    <meta name='url' content='https://www.shoshin.moe/en'>
     <link rel="icon" href="../static/favicon_wuwa.png"/>
     <link rel="stylesheet" href="../static/css/output.css"/>
     <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed"></script>
@@ -34,6 +34,15 @@
         }
     </script>
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-44JD26YV2G"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-44JD26YV2G');
+</script>
 <body class="flex flex-col items-center min-h-screen bg-off-white dark:bg-night-dark">
     <!-- Wrapper for navbar and content with background image -->
     <div class="relative w-screen bg-cover bg-center bg-fade-bottom" style="background-image: url('../static/wallpapers/light.png'); height: 65vh;">
@@ -61,13 +70,13 @@
         <!-- Content directly after navbar -->
         <div class="flex flex-col gap-4">
             <div class="max-w-6xl mx-auto mt-32 p-2 md:p-0">
-                <h1 class="text-xl md:text-6xl font-bold bg-clip-text text-white break-words z-20 relative leading-loose">
-                    Genera e condividi la build del tuo personaggio di Wuthering Waves.<br />Facilmente. Velocemente.
+                <h1 class="text-xl md:text-6xl font-bold bg-clip-text text-white break-words z-20 relative leading-normal">
+                    Generate & share your Wuthering Waves character build.<br />Easily. Faster.
                 </h1>
             </div>
             <div class="max-w-6xl mx-auto mt-4 p-2 md:p-0">
                 <p class="text-base md:text-2xl text-white dark:text-gray-200 z-20 relative font-light leading-relaxed">
-                    Recupera informazioni sul resonator che desideri dal tuo account e condividi l'immagine della build generata.
+                    Retreive informations about the resonator you want from your account, and share the generated build image.
                 </p>
             </div>
         </div>
@@ -78,7 +87,7 @@
                         <div class="relative flex items-center">
                             <!-- Input field wrapper to capture clicks if needed -->
                             <div class="relative">
-                                <input type="text" id="uidInput" placeholder="Inserisci il tuo UID~" class="cursor-not-allowed p-4 pl-10 pr-4 rounded-md bg-off-white/50 placeholder-black dark:placeholder-white text-black dark:text-white border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 input-glow w-full" disabled>
+                                <input type="text" id="uidInput" placeholder="Paste your UID~" class="cursor-not-allowed p-4 pl-10 pr-4 rounded-md bg-off-white/50 placeholder-black dark:placeholder-white text-black dark:text-white border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 input-glow w-full" disabled>
                                 <div class="absolute inset-y-0 right-2 left-2 flex items-center pointer-events-none">
                                     <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" fill="none" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
@@ -86,7 +95,7 @@
                                 </div>
                             </div>
                             <span id="tooltip" class="opacity-0 invisible transition-opacity duration-300 absolute -mt-28 ml-[-50%] bg-black text-white text-xs rounded py-1 px-4 right-1/2 transform translate-x-1/2">
-                                Questa funzione non è al momento disponibile, si prega di utilizzare la funzione di caricamento manuale.
+                                This is currently unavailable, please use the manual upload function.
                                 <span class="absolute top-full left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0 h-0 border-x-transparent border-x-8 border-t-8 border-t-black"></span>
                             </span>
                         </div>
@@ -94,7 +103,7 @@
                             <!-- Upload Button -->
                             <div id="fileDiv" class="relative">
                                 <label class="cursor-pointer p-4 pl-10 pr-4 rounded-md bg-off-white/50 hover:bg-off-white placeholder-black dark:placeholder-white text-black dark:text-white border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 input-glow w-full">
-                                    Carica File(s)
+                                    Upload Files
                                     <input type="file" class="hidden" id="fileUpload" multiple @change="handleFileUpload">
                                 </label>
                                 <div class="absolute inset-y-0 right-2 left-2 flex items-center pointer-events-none">
@@ -104,11 +113,11 @@
                                 </div>
                             </div>
                             <span id="tooltipFile" class="opacity-0 invisible transition-opacity duration-300 absolute -mt-36 ml-[-50%] bg-black text-white text-xs rounded py-1 px-4 right-1/2 transform translate-x-1/2">
-                                Gli screenshot devono essere a schermo intero. Vedi 
+                                The screenshots must be full-screen. See 
                                 <a href="https://www.patreon.com/posts/shoshin-moe-106816433?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link" class="text-blue-500 hover:text-blue-600 hover:underline hover:decoration-blue-600">
-                                    questo tutorial
+                                    this tutorial
                                 </a>
-                                per capire come fare.
+                                to learn how to use it.
                                 <span class="absolute top-full left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-0 h-0 border-x-transparent border-x-8 border-t-8 border-t-black"></span>
                             </span>
                         </div>
@@ -181,19 +190,19 @@
                     </div>
                     <hr class="h-px bg-gray-600 border-0 dark:bg-gray-300 mt-4 mb-4">
                     <p class="text-xs text-gray-600 dark:text-gray-400 font-light">
-                        Grazie a tutti coloro che si sono iscritti al mio Patreon. Il vostro supporto significa molto per me e mi aiuta a mantenere i miei progetti in esecuzione senza intoppi.
+                        Thanks to everyone who subscribed to my Patreon. Your support means a lot to me and it helps me keep my projects running smoothly.
                         <br>
                         <br>
-                        Se sei interessato a diventare un Patron, puoi iscriverti cliccando <a href="https://patreon.com/zoux" class="text-blue-500 hover:text-blue-600 hover:underline hover:decoration-blue-600">qui</a>, ogni forma di supporto è molto apprezzata!
+                        If you're interested in becoming a Patron, you can subscribe clicking <a href="https://patreon.com/zoux" class="text-blue-500 hover:text-blue-600 hover:underline hover:decoration-blue-600">here</a>, every bit of support is greatly appreciated!
                         <br>
                         <br>
-                        <span class="font-semibold">Nota:</span> Le fasce di supporto sono soggette a modifiche, quindi assicurati di controllare la pagina Patreon per le informazioni più aggiornate.
+                        <span class="font-semibold">Note:</span> The tiers are subject to change, so make sure to check the Patreon page for the most up-to-date information.
                     </p>
                 </div>
                 <!-- Content -->
                 <div class="w-4/5 ml-4">
                     <div id="currentSelDiv" class="flex flex-row">
-                        <h1 class="text-xl font-bold text-black dark:text-white"><a id='currentSel' class='text-red-500 font-bold text-2xl'></a> MEMBRI</h1>
+                        <h1 class="text-xl font-bold text-black dark:text-white"><a id='currentSel' class='text-red-500 font-bold text-2xl'></a> MEMBERS</h1>
                     </div>
                     <div id="legacy" class="grid grid-cols-3 gap-4 mb-8 mx-auto"></div>
                     <div id="tier-1" class="grid grid-cols-3 gap-4 mb-8 hidden"></div>
@@ -211,15 +220,15 @@
                     </div>
                 </div>
                 <p class="text-black dark:text-white text-md font-normal text-wrap p-2">
-                    # Community di Discord////
-                    > Questa è la community di Discord per [Shoshin.moe](https://shoshin.moe).////
-                    Se hai domande, suggerimenti o semplicemente vuoi passare del tempo insieme, sentiti libero di unirti, siamo un gruppo amichevole!////
-                    ## Qual è lo scopo?//
-                    Il server di Discord è un luogo in cui gli utenti possono interagire, condividere idee e partecipare alla community. Serve come punto di incontro per discussioni, annunci e supporto relativi ai progetti e ai contenuti ospitati su [Shoshin.moe](https://shoshin.moe). Il server fornisce una piattaforma per gli utenti per connettersi, collaborare e contribuire alla crescita e allo sviluppo della community.////
-                    ## Come unirsi?//
-                    Per unirti al server di Discord, basta cliccare sul link sottostante e seguire le istruzioni per diventare parte della community. Non vediamo l'ora di darti il benvenuto a bordo!////
+                    # Discord Community////
+                    > This is the Discord Community for [Shoshin.moe](https://shoshin.moe).////
+                    If you have any questions, suggestions, or just want to hang out, feel free to join, we're a friendly bunch!////
+                    ## What's the purpose?//
+                    The Discord server is a place for users to interact, share ideas, and engage with the community. It serves as a hub for discussions, announcements, and support related to the projects and content hosted on [Shoshin.moe](https://shoshin.moe). The server provides a platform for users to connect, collaborate, and contribute to the growth and development of the community.////
+                    ## How to join?//
+                    To join the Discord server, simply click on the link below and follow the instructions to become a part of the community. We look forward to welcoming you aboard!////
                 </p>
-                <a href="https://discord.com/invite/geJcCh52mx" target="_blank" rel="noopener noreferrer" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Unisciti</a>
+                <a href="https://discord.com/invite/geJcCh52mx" target="_blank" rel="noopener noreferrer" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">Join Discord</a>
                 <widgetbot server="1247929775066976339" channel="1247929775066976342" height="600" class='w-full mt-4'></widgetbot>
             </div>
             <div id="business-tab" class="hidden p-4 rounded-md bg-off-white/50 dark:bg-night-dark-alt/50 input-glow-dark shadow-night-dark w-full mb-8 sans-it">
@@ -232,22 +241,22 @@
                     </div>
                 </div>
                 <p class="text-black dark:text-white text-md font-normal text-wrap p-2">
-                    # Richieste Commerciali////
-                    > Per richieste commerciali, collaborazioni o altre questioni professionali, ti preghiamo di contattarci tramite le informazioni di contatto fornite di seguito.////
-                    ## Informazioni di Contatto//
+                    # Business Inquiries////
+                    > For business inquiries, collaborations, or other professional matters, please reach out to us via the contact information provided below.////
+                    ## Contact Information//
                     **Email:** helpdesk@shoshin.moe////
-                    ## Servizi Offerti//
-                    Siamo aperti a qualsiasi tipo di collaborazione riguardante i giochi gacha. Se hai un progetto in mente, una partnership o semplicemente vuoi parlare dell'industria, non esitare a contattarmi. Sono sempre alla ricerca di nuove opportunità e avventure entusiasmanti da esplorare.////
-                    ## Disponibilità//
-                    Siamo disponibili dal lunedì al venerdì, dalle 9:00 alle 13:00 **OPPURE** dalle 15:00 alle 21:00 (UTC+1), a seconda del turno che devo seguire quel giorno. Se hai richieste urgenti o hai bisogno di assistenza immediata, ti preghiamo di contattarci via email. Ci impegniamo a rispondere tempestivamente e a fornire il miglior servizio possibile a tutti.
+                    ## Services Offered//
+                    We're (i'm) open to any type of collaboration regarding gacha games. If you have a project in mind, a partnership, or just want to chat about the industry, feel free to contact me. I'm always looking for new opportunities and exciting ventures to explore.////
+                    ## Availability//
+                    We're (i'm) available from Monday to Friday, 9:00 AM - 1:00 PM **OR** 3:00 PM - 9:00 PM (UTC+1), according to what shift i need to attend to that day. If you have any urgent inquiries or require immediate assistance, please don't hesitate to contact via email. I strive to respond promptly and provide the best possible service to everyone.
                 </p>
             </div>
         </div>
         <div class="flex flex-col gap-2 items-center justify-center p-2">
             <p class="text-xs text-gray-400 dark:text-white font-light text-center mt-4">
-            Questo progetto non è affiliato a Wuthering Waves o Kuro Games.
+                This project is not affiliated with Wuthering Waves or Kuro Games.
             <p class="text-xs text-gray-400 dark:text-white font-light text-center mt-2">
-            © 2024 Shoshin. Tutti i diritti riservati.
+                © 2024 Shoshin. All rights reserved.
             </p>
         </div>
     </div>
@@ -266,6 +275,7 @@
     <div class="pl-4 border-l-4 border-gray-500 italic hidden bg-night-dark bg-night-dark/50"></div>
     <div class="hidden w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-red-600 w-1/2 inline-block relative"></div>
     <div class="hidden bg-red-500/75 absolute top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex justify-center items-center gap-2 opacity-0 group-hover:opacity-100 cursor-pointer px-10 py-4 rounded-md bg-white bg-opacity-50 hover:bg-opacity-70 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+    <div class='hidden bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-700'></div>
     <script src="../static/js/gen.js" type="text/javascript"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
