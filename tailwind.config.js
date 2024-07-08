@@ -2,7 +2,8 @@
 module.exports = {
   content: [
     "./templates/**/*.{html,js,css,ts,jsx,tsx}", 
-    "./node_modules/flowbite/**/*.js"
+    "./node_modules/flowbite/**/*.js",
+    "./static/**/*.{html,js,css,ts,jsx,tsx}"
   ],
   darkMode: 'class', // Enable class-based dark mode
   theme: {

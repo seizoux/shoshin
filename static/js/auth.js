@@ -102,6 +102,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('_sho-email-field').addEventListener('blur', function() {
-        document.getElementById('_sho-email-field-checkIcon').classList.remove('hidden');
+        var emailField = document.getElementById('_sho-email-field');
+        var checkIcon = document.getElementById('_sho-email-field-checkIcon');
+        var errorIcon = document.getElementById('_sho-email-field-errorIcon');
+        var errorMessage = document.getElementById('_sho-email-field-error');
+        var email = emailField.value;
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+        if (emailRegex.test(email)) {
+            checkIcon.classList.remove('hidden');
+            errorIcon.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            emailField.classList.add('border-green-400')
+            emailField.classList.remove('border-red-400')
+        } else {
+            checkIcon.classList.add('hidden');
+            errorIcon.classList.remove('hidden');
+            errorMessage.classList.remove('hidden');
+            emailField.classList.add('border-red-400')
+            emailField.classList.remove('border-green-400')
+        }
     });
 });
