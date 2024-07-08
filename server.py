@@ -237,4 +237,4 @@ async def verify_recaptcha():
         data["action"]
     )
 
-    return {"status": "success", "payload": assessment, "testrtr": "test"}
+    return {"status": "success", "payload": assessment}
