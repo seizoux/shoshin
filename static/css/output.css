@@ -1075,6 +1075,10 @@ video {
   border-right-width: 8px;
 }
 
+.border-b-4 {
+  border-bottom-width: 4px;
+}
+
 .border-l-4 {
   border-left-width: 4px;
 }
@@ -1513,6 +1517,10 @@ video {
   transition-duration: 500ms;
 }
 
+.duration-75 {
+  transition-duration: 75ms;
+}
+
 @font-face {
   font-family: 'H7GBKHeavy.TTF';
 
@@ -1673,6 +1681,11 @@ body.dark .bg-fade-bottom::after {
 
 .hover\:decoration-blue-600:hover {
   text-decoration-color: #2563eb;
+}
+
+.focus\:border-purple-400:focus {
+  --tw-border-opacity: 1;
+  border-color: rgb(192 132 252 / var(--tw-border-opacity));
 }
 
 .focus\:outline-none:focus {

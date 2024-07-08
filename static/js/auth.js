@@ -100,4 +100,8 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         document.getElementById('_sho-login').addEventListener('click', onClick);
     }
+
+    document.getElementById('_sho-email-field').addEventListener('blur', function() {
+        document.getElementById('_sho-email-field-checkIcon').classList.remove('hidden');
+    });
 });
