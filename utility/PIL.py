@@ -114,7 +114,7 @@ fontLvl = ImageFont.truetype(font_path, 65)
 fontSponsor1st = ImageFont.truetype(font_path, 50)
 fontSponsor2nd = ImageFont.truetype(font_path, 27)
 
-async def process_images(files, app: Quart, is_mobile: bool = False):
+async def process_images(files, app: Quart, is_mobile: bool = False, is_rover: bool = False):
     log.info("[PROCESSING] Processing images: IS_MOBILE: %s", is_mobile)
     loop = asyncio.get_event_loop()
 
@@ -182,7 +182,7 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     ]
 
     fi_crop_roi = (200, 150, 600, 400) if is_mobile == False else (200, 74, 580, 330)
-    name_roi = (135, 5, 384, 62) if is_mobile == False else (127, 38, 363, 88)
+    name_roi = (135, 5, 387, 62) if is_mobile == False else (127, 38, 367, 88)
     yellow_roi = (139, 53, 290, 102) if is_mobile == False else (134, 87, 260, 132)
     level_roi = (43, 164, 220, 204) if is_mobile == False else (36, 185, 191, 227)
 
@@ -193,13 +193,10 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
 
     # Perform OCR
     first_image = await loop.run_in_executor(executor, crop_image, images[0], fi_crop_roi)
-    name_text = await extract_text_from_image(first_image, name_roi, "name", "6")
     yellow_text = await extract_text_from_image(first_image, yellow_roi, "yellow_text")
     level_text = await extract_text_from_image(first_image, level_roi, "level", "7")
     if "Lv." not in level_text:
         level_text = await extract_text_from_image(first_image, level_roi, "level", "7", True)
-
-    name_text = re.sub("[^a-zA-Z]", "", name_text)
 
     byte_arr = io.BytesIO()
     first_image.save(byte_arr, format='PNG')  # Use appropriate format like 'JPEG'
@@ -210,14 +207,20 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     # Convert the base64 byte array to a string
     encoded_string = encoded_image.decode('utf-8')
 
-    if name_text not in resonator_names:
-        name_text = await extract_text_from_image(first_image, (109, 10, 278, 54), "name", "6")
-        if name_text not in resonator_names:
-            log.info(f"[ERROR] Text extraction failed, params extracted: {name_text}, {yellow_text}, {level_text}")
-            return jsonify({"error": "Resonator name not found. Are you sure you uploaded the correct images?", "first_image": encoded_string, "extracted": [name_text, yellow_text, level_text]})
+    if not is_rover:
+        name_text = await extract_text_from_image(first_image, name_roi, "name", "6")
+        name_text = re.sub("[^a-zA-Z]", "", name_text)
 
-    # Load resonator image
-    resonator_image_path = f'./static/3dicons/{name_text.lower()}3d.png'
+        if name_text not in resonator_names:
+            name_text = await extract_text_from_image(first_image, (109, 10, 278, 54), "name", "6")
+            if name_text not in resonator_names:
+                log.info(f"[ERROR] Text extraction failed, sending in-game name confirmation. Extracted: {name_text}, {yellow_text}, {level_text}")
+                return jsonify({"error": "Resonator name not found. Are you sure you uploaded the correct images?", "first_image": encoded_string, "extracted": [name_text, yellow_text, level_text], "confirm": f"Is {name_text} your in-game name by any chance? Are you trying to upload the main character?"})
+        resonator_image_path = f'./static/3dicons/{name_text.lower()}3d.png'
+    else:
+        name_text = await extract_text_from_image(first_image, name_roi, "name", "6")
+        resonator_image_path = f'./static/3dicons/rover3d.png'
+
     if not os.path.exists(resonator_image_path):
         return jsonify({"error": f"3D icon for {name_text} not found."})
     
@@ -451,4 +454,5 @@ async def process_images(files, app: Quart, is_mobile: bool = False):
     # Convert the base64 byte array to a string
     encoded_string = encoded_image.decode('utf-8')
 
+    log.info(f"[SUCCESS] Generated image and uploaded to CDN: {_file_url}")
     return {"image": _file_url, "name": name_text, "level": level_text, "yellow_text": yellow_text, "first_image": encoded_string}  # Return the base64 encoded image data
