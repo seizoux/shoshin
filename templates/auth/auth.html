@@ -32,7 +32,13 @@
   gtag('config', 'G-44JD26YV2G');
 </script>
 <body class="sans-it">
-    <div class="absolute top-0 h-auto w-full bg-transparent md:bg-[#262626] z-10">
+    <div id="_sho-login-errorBannerTop" class="hidden absolute top-0 w-full h-auto p-4 bg-red-600 flex items-center justify-center z-11 transition-transform duration-500 ease-out transform -translate-y-full">
+        <p class="text-black text-lg">Email or password is incorrect.</p>
+        <svg id="_sho-login-errorBannerTop-close" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="black" class="absolute right-2 bi bi-x-lg hover:cursor-pointer" viewBox="0 0 16 16">
+            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+        </svg>
+    </div>
+    <div class="h-auto w-full bg-transparent md:bg-[#262626] z-10">
         <div class="flex items-center justify-center p-2">
             <img src="https://shoshin.moe/static/shoshinlogo.png" alt="Shoshin Logo" class="h-16 w-auto md:h-12" />
         </div>
@@ -48,14 +54,34 @@
                         <p class="mx-auto text-2xl text-white md:text-3xl">Welcome Back!</p>
                         <p class="mx-auto text-xs text-gray-300">Always a pleasure seeing you here ;)</p>
                     </div>
-                    <div class="flex flex-col gap-2 md:p-0">
-                        <p class="text-sm text-white">UID / Email <span class="text-red-600">*</span></p>
-                        <input type="text" class="w-full rounded-md border px-4 py-2" />
+                    <!-- Email Field -->
+                    <div class="flex flex-col gap-2 px-8 mt-4">
+                        <p class="text-sm text-white">Email <span class="text-red-600">*</span></p>
+                        <div class="relative flex items-center">
+                            <input id="_sho-email-field" type="text" class="w-full text-white py-1 text-lg border-b-4 bg-transparent focus:outline-none focus:border-purple-400 transition duration-75" />
+                            <svg id="_sho-email-field-checkIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="green" class="hidden absolute right-2 bi bi-check-lg" viewBox="0 0 16 16">
+                                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+                            </svg>
+                            <svg id="_sho-email-field-errorIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="hidden absolute right-2 bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                            </svg>
+                        </div>
+                        <p id="_sho-email-field-error" class="hidden text-red-600 text-xs mt-2">Invalid email address.</p>
                     </div>
-                    <div class="flex flex-col gap-2 md:p-0">
+                    <!-- Password Field -->
+                    <div class="flex flex-col gap-2 px-8">
                         <p class="text-sm text-white">Password <span class="text-red-600">*</span></p>
-                        <input type="password" class="w-full rounded-md border px-4 py-2" />
+                        <div class="relative flex items-center">
+                            <input id="_sho-password-field" type="password" class="w-full text-white py-1 text-lg border-b-4 bg-transparent focus:outline-none focus:border-purple-400 transition duration-75" />
+                            <svg id="_sho-password-field-checkIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="green" class="hidden absolute right-2 bi bi-check-lg" viewBox="0 0 16 16">
+                                <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+                            </svg>
+                            <svg id="_sho-password-field-errorIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="hidden absolute right-2 bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                            </svg>
+                        </div>
                         <a class="text-xs text-blue-500 hover:text-blue-700 hover:underline" href="https://shoshin.moe/account?ac=rcv">Forgot your password?</a>
+                        <p id="_sho-password-field-error" class="hidden text-red-600 text-xs mt-2">Password must be at least 8 characters long, and contain at least one uppercase letter, one lowercase letter, and one special character.</p>
                     </div>
                     <div class="flex flex-col items-center gap-4">
                         <div class="mt-4 w-36 md:w-48">
