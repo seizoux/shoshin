@@ -1,14 +1,13 @@
 # This file is the main file for the web server. It handles all the routes and the main server setup.
-import re
 import aiohttp
-from flask import redirect
+import bcrypt
 from quart import Quart, request, session, render_template, jsonify, Response
 import settings as _WebSettings
 import asyncpg
 import datetime
 import logging
 import colorlog
-import json
+import random
 from quartcord import DiscordOAuth2Session
 from utility import PIL
 import sentry_sdk
@@ -248,78 +247,65 @@ async def verify_recaptcha():
 
     return {"status": "success", "payload": assessment}
 
-@app.route("/auth/login", methods=["POST"])
-async def auth_login():
+@app.route("/auth/verify", methods=["POST"])
+async def auth_verify():
+    data = await request.get_json()
+    if not data:
+        return {"status": "error", "payload": "No data provided."}
+
+    if not all([x in data for x in ["email", "password", "action"]]):
+        return {"status": "error", "payload": "Missing required fields: email, password, action"}
+
+    if data['action'] == "register":
+        user = await app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data["email"])
+        if user:
+            return {"status": "error", "payload": "This email is already registered. Please login."}
+        
+        message = Mail(
+            from_email='no-reply@shoshin.moe',
+            to_emails=data['email'],
+            subject='Welcome to Shoshin!'
+        )
+
+        # Generate a 6-digit verification code using random.randint
+        vc = random.randint(100000, 999999)
+
+        # Check if there is already a code for this email
+        existing_code = await app.pool.fetchrow("SELECT code FROM verification_codes WHERE email = $1", data['email'])
+        if existing_code:
+            vc = existing_code['code']
+        else:
+            await app.pool.execute("INSERT INTO verification_codes (email, code) VALUES ($1, $2)", data['email'], vc)
+
+        message.dynamic_template_data = {
+            'VERIFICATION_CODE': vc,
+        }
+        
+        message.template_id = "d-b68f308872694602ae2c6183a0daa077"
+
+        try:
+            sg = SendGridAPIClient(_WebSettings.SENDGRID_API_KEY)
+            sg.send(message)
+            return {"status": "success", "payload": "Email sent"}
+        except Exception as e:
+            return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
+
+@app.route('/auth/verify/code', methods=['POST'])
+async def verify_code():
     data = await request.get_json()
     if not data:
         return {"status": "error", "message": "No data provided."}
 
-    if not all([x in data for x in ["email", "password"]]):
-        return {"status": "error", "message": "Missing required fields: email, password"}
+    if not all([x in data for x in ["email", "code", "pass", "uid"]]):
+        return {"status": "error", "payload": "Missing required fields: email, code, pass, uid"}
 
-    #user = await app.pool.fetchrow("SELECT * FROM users WHERE email = $1 AND password = $2", data["email"], data["password"])
-    #if not user:
-        #return {"status": "error", "message": "User not found."}
-
-    privacy_policy_url = "https://shoshin.moe/privacy"
-    terms_url = "https://shoshin.moe/terms"
-
-    html_content = '''
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Shoshin!</title>
-        <style>
-            /* Inline your CSS styles here or ensure styles are inline */
-            body { background-color: #f3f4f6; padding: 20px; font-family: Arial, sans-serif; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-            .header { text-align: center; }
-            .header h1 { color: #333; }
-            .content { margin-top: 20px; }
-            .footer { margin-top: 40px; text-align: center; color: #555; }
-            .footer a { color: #1d4ed8; text-decoration: none; }
-            .top-banner-centered { display: block; margin: 0 auto; background-image: url('https://beta.shoshin.moe/assets/mailbanner.png);}
-            .top-logo { display: block; margin: 0 auto; width: 30px; height: auto;}
-        </style>
-    </head>
-    <body>
-        <img src="https://beta.shoshin.moe/static/shoshinlogo.png" alt="Shoshin Banner" class='top-logo'/>
-        <div class="container">
-            <div class="top-banner-centered">
-                <img src="https://beta.shoshin.moe/static/mailbanner.png" alt="Shoshin Banner" />
-            </div>
-            <div class="header">
-                <h1>Welcome to Shoshin!</h1>
-            </div>
-            <div class="content">
-                <p>Thank you for joining Shoshin. We're excited to have you on board!</p>
-                <p>To get started, please check out our <a href="{privacy_policy_url}">Privacy Policy</a> and <a href="{terms_url}">Terms of Service</a>.</p>
-            </div>
-            <div class="footer">
-                <p>&copy; 2023 Shoshin. All rights reserved.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-    '''
-
-    message = Mail(
-        from_email='no-reply@shoshin.moe',
-        to_emails='pistolamario0@gmail.com',
-        subject='Welcome to Shoshin!',
-        html_content=html_content
-    )
-    try:
-        sg = SendGridAPIClient(_WebSettings.SENDGRID_API_KEY)
-        response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
-        return {"status": "error", "payload": "Email sent"}
-    except Exception as e:
-        print(e.message)
-        return {"status": "error", "payload": "Email not sent", "error": e}
-
-    return {"status": "success", "payload": user}
+    code = await app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data['email'], int(data['code']))
+    if code:
+        await app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
+        
+        hashed_password = bcrypt.hashpw(data['pass'].encode('utf-8'), bcrypt.gensalt())
+        
+        await app.pool.execute("INSERT INTO users (email, password, uid) VALUES ($1, $2, $3)", data['email'], hashed_password.decode('utf-8'), int(data['uid']))
+        return {"status": "success", "payload": "Code is correct, redirecting you to the account page..."}
+    else:
+        return {"status": "error", "payload": "The code you entered is incorrect."}
