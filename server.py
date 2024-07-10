@@ -15,6 +15,7 @@ from sentry_sdk.integrations.quart import QuartIntegration
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from utility.grecaptcha import create_assessment
+import asyncio
 
 sentry_sdk.init(
     dsn=_WebSettings.SENTRY_DSN,
@@ -303,9 +304,20 @@ async def verify_code():
     if code:
         await app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
         
-        hashed_password = bcrypt.hashpw(data['pass'].encode('utf-8'), bcrypt.gensalt())
+        hashed_password = await asyncio.to_thread(bcrypt.hashpw, data['pass'].encode('utf-8'), bcrypt.gensalt())
         
         await app.pool.execute("INSERT INTO users (email, password, uid) VALUES ($1, $2, $3)", data['email'], hashed_password.decode('utf-8'), int(data['uid']))
         return {"status": "success", "payload": "Code is correct, redirecting you to the account page..."}
     else:
         return {"status": "error", "payload": "The code you entered is incorrect."}
+
+@app.route('/api/env', methods=['POST'])
+async def get_env():
+
+    _vv = {
+        "recaptcha_token": _WebSettings.RECAPTCHA_TOKEN,
+        "google_client_id": _WebSettings.GOOGLE_CLIENT_ID,
+    }
+
+    data = await request.get_json()
+    return jsonify({'key': _vv[data['key']]})

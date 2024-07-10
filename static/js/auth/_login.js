@@ -1,7 +1,10 @@
+import { _f } from './_e.js';
+
 export function onClick(e) {
     e.preventDefault();
     grecaptcha.enterprise.ready(async () => {
-    const token = await grecaptcha.enterprise.execute('6LcRawoqAAAAAF9tZG41oi6lOa8JE39h_oKYJtO-', {action: '_sho_LOGIN_RECAPTCHA'});
+    let _i = await _f('recaptcha_token')
+    const token = await grecaptcha.enterprise.execute(_i, {action: '_sho_LOGIN_RECAPTCHA'});
     console.log(`[ReCaptcha] Analyzing login request for potential bot activity...`);
     new Promise((resolve, reject) => {
         fetch(_px, {

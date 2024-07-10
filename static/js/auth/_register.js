@@ -1,10 +1,12 @@
 import { _px, _pl } from './_proxy.js';
 import { _pvc_v } from './_pvc.js';
+import { _f } from './_e.js';
 
 export function RonClick(e) {
     e.preventDefault();
     grecaptcha.enterprise.ready(async () => {
-    const token = await grecaptcha.enterprise.execute('6LcRawoqAAAAAF9tZG41oi6lOa8JE39h_oKYJtO-', {action: '_sho_REGISTER_RECAPTCHA'});
+    let _i = await _f('recaptcha_token')
+    const token = await grecaptcha.enterprise.execute(_i, {action: '_sho_REGISTER_RECAPTCHA'});
     console.log(`[ReCaptcha] Analyzing registration request for potential bot activity...`);
     new Promise((resolve, reject) => {
         fetch(_px, {
