@@ -32,8 +32,8 @@
   gtag('config', 'G-44JD26YV2G');
 </script>
 <body class="sans-it">
-    <div id="_sho-login-errorBannerTop" class="hidden absolute top-0 w-full h-auto p-4 bg-red-600 flex items-center justify-center z-11 transition-transform duration-500 ease-out transform -translate-y-full">
-        <p class="text-black text-lg">Email or password is incorrect.</p>
+    <div id="_sho-login-errorBannerTop" class="hidden absolute top-0 w-full h-auto p-4 bg-red-600 flex items-center justify-center z-30 transition-transform duration-500 ease-out transform -translate-y-full">
+        <p id="_sho-login-errorBannerTop-text" class="text-black text-lg">Email or password is incorrect.</p>
         <svg id="_sho-login-errorBannerTop-close" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="black" class="absolute right-2 bi bi-x-lg hover:cursor-pointer" viewBox="0 0 16 16">
             <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
         </svg>
@@ -49,10 +49,10 @@
                 <div class="absolute -right-40 -top-5 z-0">
                     <img src="https://shoshin.moe/static/login.png" alt="Login Cutie" class="w-44 hidden lg:block" />
                 </div>
-                <div class="rounded-sm bg-[#333333] p-8 z-30 space-y-4">
-                    <div class="flex flex-col gap-4">
-                        <p class="mx-auto text-2xl text-white md:text-3xl">Welcome Back!</p>
-                        <p class="mx-auto text-xs text-gray-300">Always a pleasure seeing you here ;)</p>
+                <div id="_sho-login-form" class="rounded-sm bg-[#333333] p-8 z-30 space-y-4">
+                    <div id="_sho-login-TopFormDiv" class="flex flex-col gap-4">
+                        <p id="_sho-login-formHeaderOne" class="mx-auto text-2xl text-white md:text-3xl">Welcome Back!</p>
+                        <p id="_sho-login-formHeaderTwo" class="mx-auto text-xs text-gray-300">Always a pleasure seeing you here ;)</p>
                     </div>
                     <!-- Email Field -->
                     <div class="flex flex-col gap-2 px-8 mt-4">
@@ -85,7 +85,7 @@
                     </div>
                     <div class="flex flex-col items-center gap-4">
                         <div class="mt-4 w-36 md:w-48">
-                            <button id="_sho-login" class="button-hover-effect w-full rounded-md px-4 py-2 text-white">Login</button>
+                            <button id="_sho-login" class="button-hover-effect w-full rounded-md px-4 py-2 text-white flex justify-center">Login</button>
                         </div>
                         <p class="text-xs text-gray-600">Don't have an account yet? <a class="text-blue-500 hover:text-blue-700 hover:underline" href="https://beta.shoshin.moe/register">Register!</a></p>
                         <hr class="my-1 h-px w-full border-0 bg-gray-200 dark:bg-gray-700" />

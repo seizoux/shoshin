@@ -32,12 +32,13 @@ export function RonClick(e) {
 
                 var registerButton = document.getElementById('_sho-register');
                 if (registerButton) {
-                    registerButton.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A8.001 8.001 0 0120.709 5.291L19.3 3.883A10.001 10.001 0 004.117 18.117l1.407-1.408z"></path></svg>Processing...';
+                    registerButton.innerHTML = '<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A8.001 8.001 0 0120.709 5.291L19.3 3.883A10.001 10.001 0 004.117 18.117l1.407-1.408z"></path></svg>';
                 }
 
                 var email = document.getElementById('_sho-email-field').value;
                 var password = document.getElementById('_sho-password-field').value;
                 var uid = document.getElementById('_sho-uid-field').value;
+                var username = document.getElementById('_sho-username-field').value;
 
                 new Promise((resolve, reject) => {
                     fetch(_pl, {
@@ -49,6 +50,7 @@ export function RonClick(e) {
                             email: email,
                             password: password,
                             uid: uid,
+                            username: username,
                             action: "register"
                         })
                     }).then(response => {
@@ -117,7 +119,7 @@ export function RonClick(e) {
 
                                 document.getElementById('_sho-code-verify').addEventListener('click', function() {
                                     var code = document.getElementById('_sho-code-field').value;
-                                    _pvc_v(email, code, password, uid);
+                                    _pvc_v(email, code, password, uid, username, 'register');
                                 });
 
                                 // Add event listener to the new input field

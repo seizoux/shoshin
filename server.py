@@ -248,6 +248,15 @@ async def verify_recaptcha():
 
     return {"status": "success", "payload": assessment}
 
+async def get_location(ip):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f'https://ipinfo.io/{ip}/json') as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                return data.get('country')
+            else:
+                return None
+
 @app.route("/auth/verify", methods=["POST"])
 async def auth_verify():
     data = await request.get_json()
@@ -290,6 +299,60 @@ async def auth_verify():
             return {"status": "success", "payload": "Email sent"}
         except Exception as e:
             return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
+    
+    elif data['action'] == "login":
+        # Get the client's IP address
+        client_ip = request.remote_addr
+        
+        # Check if the X-Forwarded-For header is present (for proxy support)
+        if 'X-Forwarded-For' in request.headers:
+            client_ip = request.headers['X-Forwarded-For'].split(',')[0].strip()
+
+        # Get the country from the IP address
+        country = await get_location(client_ip)
+
+        user = await app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data["email"])
+        if not user:
+            return {"status": "error", "payload": "This email is not registered. Please register."}
+        
+        if bcrypt.checkpw(data['password'].encode('utf-8'), user['password'].encode('utf-8')):
+
+            if user['mfa'] == True:
+                message = Mail(
+                    from_email='no-reply@shoshin.moe',
+                    to_emails=data['email'],
+                    subject='New Login Request'
+                )
+
+                # Generate a 6-digit verification code using random.randint
+                vc = random.randint(100000, 999999)
+
+                # Check if there is already a code for this email
+                existing_code = await app.pool.fetchrow("SELECT code FROM verification_codes WHERE email = $1", data['email'])
+                if existing_code:
+                    vc = existing_code['code']
+                else:
+                    await app.pool.execute("INSERT INTO verification_codes (email, code) VALUES ($1, $2)", data['email'], vc)
+
+                message.dynamic_template_data = {
+                    'VERIFICATION_CODE': vc,
+                    'user': user['username'],
+                    'LOCATION': country
+                }
+                
+                message.template_id = "d-2c2ac49467a24cc9a14ea7b6a826005e"
+
+                try:
+                    sg = SendGridAPIClient(_WebSettings.SENDGRID_API_KEY)
+                    sg.send(message)
+                except Exception as e:
+                    return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
+
+                return {"status": "success", "payload": "Login successful", "mfa": "required"}
+            else:
+                return {"status": "success", "payload": "Login successful, redirecting you to the account page..."}
+        else:
+            return {"status": "error", "payload": "The password you entered is incorrect."}
 
 @app.route('/auth/verify/code', methods=['POST'])
 async def verify_code():
@@ -297,19 +360,28 @@ async def verify_code():
     if not data:
         return {"status": "error", "message": "No data provided."}
 
-    if not all([x in data for x in ["email", "code", "pass", "uid"]]):
-        return {"status": "error", "payload": "Missing required fields: email, code, pass, uid"}
+    if data['action'] == "register":
+        if not all([x in data for x in ["email", "code", "pass", "uid", "username", "action"]]):
+            return {"status": "error", "payload": "Missing required fields: email, code, pass, uid, username, action"}
 
-    code = await app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data['email'], int(data['code']))
-    if code:
-        await app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
-        
-        hashed_password = await asyncio.to_thread(bcrypt.hashpw, data['pass'].encode('utf-8'), bcrypt.gensalt())
-        
-        await app.pool.execute("INSERT INTO users (email, password, uid) VALUES ($1, $2, $3)", data['email'], hashed_password.decode('utf-8'), int(data['uid']))
-        return {"status": "success", "payload": "Code is correct, redirecting you to the account page..."}
-    else:
-        return {"status": "error", "payload": "The code you entered is incorrect."}
+    if data['action'] == "register":
+        code = await app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data['email'], int(data['code']))
+        if code:
+            await app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
+            
+            hashed_password = await asyncio.to_thread(bcrypt.hashpw, data['pass'].encode('utf-8'), bcrypt.gensalt())
+            
+            await app.pool.execute("INSERT INTO users (email, password, uid, username) VALUES ($1, $2, $3, $4)", data['email'], hashed_password.decode('utf-8'), int(data['uid']), data['username'])
+            return {"status": "success", "payload": "Code is correct, redirecting you to the account page..."}
+        else:
+            return {"status": "error", "payload": "The code you entered is incorrect."}
+    elif data['action'] == "login":
+        code = await app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data['email'], int(data['code']))
+        if code:
+            await app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
+            return {"status": "success", "payload": "Code is correct, redirecting you to the account page..."}
+        else:
+            return {"status": "error", "payload": "The code you entered is incorrect."}
 
 @app.route('/api/env', methods=['POST'])
 async def get_env():
@@ -321,3 +393,18 @@ async def get_env():
 
     data = await request.get_json()
     return jsonify({'key': _vv[data['key']]})
+
+@app.route('/api/username/availability', methods=['POST'])
+async def check_username():
+    data = await request.get_json()
+    if not data:
+        return {"status": "error", "message": "No data provided."}
+
+    if not 'username' in data:
+        return {"status": "error", "message": "Missing required field: username"}
+
+    user = await app.pool.fetchrow("SELECT * FROM users WHERE username = $1", data['username'])
+    if user:
+        return {"status": "error", "message": "This username is already taken.", "result": False}
+    else:
+        return {"status": "success", "message": "This username is available.", "result": True}

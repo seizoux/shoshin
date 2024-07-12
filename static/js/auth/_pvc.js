@@ -1,6 +1,7 @@
 import { _pvc } from './_proxy.js';
+import { _ } from './_err.js';
 
-export function _pvc_v(e, c, p, u) {
+export function _pvc_v(e, c, p, u, us, a) {
     new Promise((resolve, reject) => {
         fetch(_pvc, {
             method: 'POST',
@@ -12,26 +13,27 @@ export function _pvc_v(e, c, p, u) {
                 code: c,
                 pass: p,
                 uid: u,
-                action: "verify"
+                username: us,
+                action: a
             })
         }).then(response => {
             if (response.ok) {
                 return response.json();
             }
-            throw new Error('Failed to verify email');
+            throw new Error('Failed.');
         }).then(data => {
-            console.log(data);
+            _._(data);
             if (data.status === 'success') {
-                console.log(`[Auth] Email Verification successful.`);
+                _._(200007, { r: 'api/auth', e: data.payload, c: c, p: 'auth'});
                 window.location.href = '/account';
             } else if (data.status === 'error') {
-                console.log(`[Auth] Email Verification failed: ${data.payload}`);
+                _._(200008, { r: 'api/auth', e: data.payload, c: c, p: 'auth'})
                 let errorMessage = document.getElementById('_sho-code-field-error');
                 errorMessage.innerText = data.payload;
                 errorMessage.classList.remove('hidden');
             }
         }).catch(error => {
-            console.error(error);
+            _._(0, { r: 'api/auth', e: error, c: c, p: 'auth'});
             reject();
         });
     })

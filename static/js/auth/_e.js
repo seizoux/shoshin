@@ -1,4 +1,5 @@
 import { _pe } from './_proxy.js';
+import { _ } from './_err.js';
 
 export async function _f(c) {
     try {
@@ -12,7 +13,7 @@ export async function _f(c) {
         const d = await r.json();
         return d.key;
     } catch (error) {
-        console.error('Error fetching environment variables:', error);
+        _._(200006, { r: 'api/env', e: error, c: c, p: 'auth'});
     }
 }
 
