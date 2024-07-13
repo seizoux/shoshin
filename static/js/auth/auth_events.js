@@ -46,14 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
     
     fields.forEach(field => {
-        var inputField = document.getElementById(field.id);
-        var checkIcon = document.getElementById(field.checkIconId);
-        var errorIcon = document.getElementById(field.errorIconId);
-        var errorMessage = document.getElementById(field.errorMessageId);
+        let inputField = document.getElementById(field.id);
+        let checkIcon = document.getElementById(field.checkIconId);
+        let errorIcon = document.getElementById(field.errorIconId);
+        let errorMessage = document.getElementById(field.errorMessageId);
     
         if (inputField && checkIcon && errorIcon && errorMessage) {
             inputField.addEventListener('blur', function() {
-                var value = inputField.value;
+                let value = inputField.value;
                 
                 if (field.regex.test(value)) {
                     if (field.validate_url == null) {
