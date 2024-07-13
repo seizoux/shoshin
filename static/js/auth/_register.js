@@ -30,15 +30,15 @@ export function RonClick(e) {
                 console.log(`[ReCaptcha] Register request is not a bot.`);
                 resolve();
 
-                var registerButton = document.getElementById('_sho-register');
+                let registerButton = document.getElementById('_sho-register');
                 if (registerButton) {
                     registerButton.innerHTML = '<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A8.001 8.001 0 0120.709 5.291L19.3 3.883A10.001 10.001 0 004.117 18.117l1.407-1.408z"></path></svg>';
                 }
 
-                var email = document.getElementById('_sho-email-field').value;
-                var password = document.getElementById('_sho-password-field').value;
-                var uid = document.getElementById('_sho-uid-field').value;
-                var username = document.getElementById('_sho-username-field').value;
+                let email = document.getElementById('_sho-email-field').value;
+                let password = document.getElementById('_sho-password-field').value;
+                let uid = document.getElementById('_sho-uid-field').value;
+                let username = document.getElementById('_sho-username-field').value;
 
                 new Promise((resolve, reject) => {
                     fetch(_pl, {
@@ -66,7 +66,7 @@ export function RonClick(e) {
                             let registerForm = document.getElementById('_sho-register-form');
     
                             if (registerForm) {
-                                let children = registerForm.children;
+                                let {children} = registerForm;
                                 for (let i = 0; i < children.length; i++) {
                                     children[i].classList.add('hidden');
                                 }
@@ -118,19 +118,19 @@ export function RonClick(e) {
                                 registerForm.appendChild(verificationDiv);
 
                                 document.getElementById('_sho-code-verify').addEventListener('click', function() {
-                                    var code = document.getElementById('_sho-code-field').value;
+                                    let code = document.getElementById('_sho-code-field').value;
                                     _pvc_v(email, code, password, uid, username, 'register');
                                 });
 
                                 // Add event listener to the new input field
-                                var inputField = document.getElementById('_sho-code-field');
-                                var checkIcon = document.getElementById('_sho-code-field-checkIcon');
-                                var errorIcon = document.getElementById('_sho-code-field-errorIcon');
-                                var errorMessage = document.getElementById('_sho-code-field-error');
+                                let inputField = document.getElementById('_sho-code-field');
+                                let checkIcon = document.getElementById('_sho-code-field-checkIcon');
+                                let errorIcon = document.getElementById('_sho-code-field-errorIcon');
+                                let errorMessage = document.getElementById('_sho-code-field-error');
 
                                 if (inputField && checkIcon && errorIcon && errorMessage) {
                                     inputField.addEventListener('blur', function() {
-                                        var value = inputField.value;
+                                        let value = inputField.value;
                                         
                                         if (value.length === 6) {
                                             checkIcon.classList.remove('hidden');

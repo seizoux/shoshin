@@ -30,14 +30,14 @@ export function onClick(e) {
                 console.log(`[ReCaptcha] Login request is not a bot.`);
                 resolve();
 
-                var loginButton = document.getElementById('_sho-login');
+                let loginButton = document.getElementById('_sho-login');
                 if (loginButton) {
                     // Display a loading indicator instead of the login button text while the login request is being processed. made with tailwind css
                     loginButton.innerHTML = '<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A8.001 8.001 0 0120.709 5.291L19.3 3.883A10.001 10.001 0 004.117 18.117l1.407-1.408z"></path></svg>';
                 }
 
-                var email = document.getElementById('_sho-email-field').value;
-                var password = document.getElementById('_sho-password-field').value;
+                let email = document.getElementById('_sho-email-field').value;
+                let password = document.getElementById('_sho-password-field').value;
 
                 new Promise((resolve, reject) => {
                     fetch(_pl, {
@@ -76,12 +76,12 @@ export function onClick(e) {
                                     let uniqueRegTop = document.getElementById('_sho-login-UniqueRegisterTop');
     
                                     if (headerOne) {
-                                        headerOne.innerText = "Email Verification";
+                                        headerOne.innerText = "Multi-Factor Authentication";
                                         headerOne.classList.remove('hidden');
                                     }
                                     
                                     if (headerTwo) {
-                                        headerTwo.innerText = "We've sent a verification code to your email, copy and paste it below.";
+                                        headerTwo.innerText = "We've sent a verification code to your email since 2FA is enabled, copy and paste it below.";
                                         headerTwo.classList.remove('hidden');
                                     }
     
