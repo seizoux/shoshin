@@ -55,36 +55,10 @@ class WebQuart(Quart):
         return self.pool
     
 app = WebQuart(__name__, static_folder="./static")
-
 app.secret_key = b"random bytes representing quart secret key"
 
 log = logging.getLogger("hypercorn")
 log.setLevel(logging.INFO)
-
-handler = logging.StreamHandler()
-handler.setFormatter(
-    colorlog.ColoredFormatter(
-        "[APP] %(log_color)s%(message)s",
-        log_colors={
-            "DEBUG": "cyan",
-            "INFO": "green",
-            "WARNING": "yellow",
-            "ERROR": "red",
-            "CRITICAL": "red,bg_white",
-        },
-    )
-)
-
-log.addHandler(handler)
-
-app.config["DISCORD_CLIENT_ID"] = _WebSettings.DISCORD_CLIENT_ID  # Discord client ID.
-app.config["DISCORD_CLIENT_SECRET"] = (
-    _WebSettings.DISCORD_CLIENT_SECRET
-)  # Discord client secret.
-app.config["DISCORD_REDIRECT_URI"] = (
-    _WebSettings.DISCORD_REDIRECT_URI
-)  # URL to your callback endpoint.
-app.config["DISCORD_BOT_TOKEN"] = _WebSettings.DISCORD_TOKEN
 
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 
@@ -126,42 +100,6 @@ async def proxy():
     except Exception as e:
         app.logger.error(f"Error occurred: {str(e)}")
         return Response(f"Error occurred: {str(e)}", status=500)
-
-@app.route("/api/generate_build", methods=["POST"])
-async def gen_build():
-    user_agent = request.headers.get('User-Agent').lower()  # Retrieve the User-Agent header and convert to lowercase for easier matching
-
-    # Check if the User-Agent indicates a mobile device
-    if 'windows' in user_agent:
-        device_type = 'desktop'
-    else:
-        device_type = 'mobile'
-
-    # Get files from request
-    files = await request.files
-    # Get the confirmPayload from the form data
-    form = await request.form
-    confirm_payload = form.get('confirmPayload')
-
-    if confirm_payload:
-        data = True
-    else:
-        data = False
-
-    if data:
-        log.info(f"[INFO] Received data: {data}")
-
-    result = await PIL.process_images(
-        files,
-        app,
-        is_mobile=True if device_type == 'mobile' else False,
-        is_rover=True if data else False
-    )
-
-    try:
-        return jsonify(result)
-    except Exception as e:
-        return result
     
 @app.route("/privacy")
 async def privacy():
@@ -205,31 +143,3 @@ async def login():
 @app.route("/register")
 async def register():
     return await render_template("auth/register.html")
-
-@app.route("/mailtest")
-async def mailtest():
-    privacy_policy_url = "https://shoshin.moe/privacy"
-    terms_url = "https://shoshin.moe/terms"
-
-    message = Mail(
-        from_email='no-reply@shoshin.moe',
-        to_emails='pistolamario0@gmail.com',
-        subject='Welcome to Shoshin!'
-    )
-
-    message.dynamic_template_data = {
-        'VERIFICATION_CODE': 739234,
-    }
-    
-    message.template_id = "d-b68f308872694602ae2c6183a0daa077"
-
-    try:
-        sg = SendGridAPIClient(_WebSettings.SENDGRID_API_KEY)
-        response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
-        return {"status": "error", "payload": "Email sent"}
-    except Exception as e:
-        print(e.message)
-        return {"status": "error", "payload": "Email not sent", "error": e}

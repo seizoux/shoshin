@@ -111,9 +111,9 @@ async def auth_verify():
                 except Exception as e:
                     return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
 
-                return {"status": "success", "payload": "Login successful", "mfa": "required"}
+                return {"status": "success", "payload": "Login successful", "mfa": "required", "raw": { "uid": user['uid']}}
             else:
-                return {"status": "success", "payload": "Login successful, redirecting you to the account page..."}
+                return {"status": "success", "payload": "Login successful, redirecting you to the account page...", "mfa": "not required", "raw": { "uid": user['uid']}}
         else:
             return {"status": "error", "payload": "The password you entered is incorrect."}
 

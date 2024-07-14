@@ -2,6 +2,17 @@ import { _f } from './_e.js';
 import { _ } from './_err.js';
 import { _px, _pl } from './_proxy.js';
 import { _pvc_v } from './_pvc.js';
+import { getCookie, setCookie } from '../_cookie_manager.js';
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the browser cookie named 'uid'
+    let uid = getCookie('uid');
+
+    // If the cookie exists, redirect the user to the account page
+    if (uid) {
+        window.location.href = '/account';
+    }
+});
 
 export function onClick(e) {
     e.preventDefault();
@@ -147,6 +158,8 @@ export function onClick(e) {
                                 }
                             } else {
                                 _._(300004, { r: 'api/auth', e: data.payload, p: 'auth'});
+                                setCookie('uid', data.raw.uid, 1);
+                                window.location.href = '/account';
                             }
                         } else if (data.status === 'error') {
                             _._(200010, { r: 'api/auth', e: data.payload, p: 'auth'});
