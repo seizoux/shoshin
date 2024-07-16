@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let checkIcon = document.getElementById(field.checkIconId);
         let errorIcon = document.getElementById(field.errorIconId);
         let errorMessage = document.getElementById(field.errorMessageId);
+        let registerButton = document.getElementById('_sho-register');
     
         if (inputField && checkIcon && errorIcon && errorMessage) {
             inputField.addEventListener('blur', function() {
@@ -62,6 +63,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         errorMessage.classList.add('hidden');
                         inputField.classList.add('border-green-400');
                         inputField.classList.remove('border-red-400');
+                        registerButton.disabled = false;
+                        registerButton.classList.remove('cursor-not-allowed');
                     } else {
                         fetch(field.validate_url, {
                             method: 'POST',
@@ -81,12 +84,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 errorMessage.classList.add('hidden');
                                 inputField.classList.add('border-green-400');
                                 inputField.classList.remove('border-red-400');
+                                registerButton.disabled = false;
+                                registerButton.classList.remove('cursor-not-allowed');
                             } else {
                                 checkIcon.classList.add('hidden');
                                 errorIcon.classList.remove('hidden');
                                 errorMessage.classList.remove('hidden');
                                 inputField.classList.add('border-red-400');
                                 inputField.classList.remove('border-green-400');
+                                registerButton.disabled = true;
+                                registerButton.classList.add('cursor-not-allowed');
                             }
                         });
                     }
@@ -96,6 +103,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     errorMessage.classList.remove('hidden');
                     inputField.classList.add('border-red-400');
                     inputField.classList.remove('border-green-400');
+                    registerButton.disabled = true;
+                    registerButton.classList.add('cursor-not-allowed');
                 }
             });
         }

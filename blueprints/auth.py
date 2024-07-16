@@ -8,6 +8,9 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import asyncio
 import aiohttp
+from utility.methods import SnowflakeIDGenerator
+
+idgen = SnowflakeIDGenerator()
 
 async def get_location(ip):
     async with aiohttp.ClientSession() as session:
@@ -111,9 +114,9 @@ async def auth_verify():
                 except Exception as e:
                     return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
 
-                return {"status": "success", "payload": "Login successful", "mfa": "required", "raw": { "uid": user['uid']}}
+                return {"status": "success", "payload": "Login successful", "mfa": "required", "raw": { "uid": user['uid'], "username": user['username']}}
             else:
-                return {"status": "success", "payload": "Login successful, redirecting you to the account page...", "mfa": "not required", "raw": { "uid": user['uid']}}
+                return {"status": "success", "payload": "Login successful, redirecting you to the account page...", "mfa": "not required", "raw": { "uid": user['uid'], "username": user['username']}}
         else:
             return {"status": "error", "payload": "The password you entered is incorrect."}
 
@@ -133,15 +136,17 @@ async def verify_code():
             await current_app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
             
             hashed_password = await asyncio.to_thread(bcrypt.hashpw, data['pass'].encode('utf-8'), bcrypt.gensalt())
-            
-            await current_app.pool.execute("INSERT INTO users (email, password, uid, username) VALUES ($1, $2, $3, $4)", data['email'], hashed_password.decode('utf-8'), int(data['uid']), data['username'])
-            return {"status": "success", "payload": "Code is correct, redirecting you to the account page..."}
+            _uuid = idgen.generate_id()
+
+            await current_app.pool.execute("INSERT INTO users (email, password, wuwa_uid, username, uid) VALUES ($1, $2, $3, $4, $5)", data['email'], hashed_password.decode('utf-8'), int(data['uid']), data['username'], _uuid)
+            return {"status": "success", "payload": "Code is correct, redirecting you to the account page...", "raw": { "uid": data['uid'], "username": data['username']}}
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}
+        
     elif data['action'] == "login":
         code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data['email'], int(data['code']))
         if code:
             await current_app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
-            return {"status": "success", "payload": "Code is correct, redirecting you to the account page..."}
+            return {"status": "success", "payload": "Code is correct, redirecting you to the account page...", "raw": { "uid": data['uid'], "username": data['username']}}
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}

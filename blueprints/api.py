@@ -2,6 +2,7 @@ from quart import Blueprint, current_app
 from quart import request, jsonify
 import settings as _WebSettings
 import logging
+from utility import PIL
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 log = logging.getLogger("hypercorn")
@@ -32,7 +33,7 @@ async def check_username():
     else:
         return {"status": "success", "message": "This username is available.", "result": True}
     
-@app.route("/api/generate_build", methods=["POST"])
+@api_bp.route("/api/generate_build", methods=["POST"])
 async def gen_build():
     user_agent = request.headers.get('User-Agent').lower()  # Retrieve the User-Agent header and convert to lowercase for easier matching
 
@@ -58,7 +59,7 @@ async def gen_build():
 
     result = await PIL.process_images(
         files,
-        app,
+        current_app,
         is_mobile=True if device_type == 'mobile' else False,
         is_rover=True if data else False
     )

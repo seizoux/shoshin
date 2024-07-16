@@ -1,20 +1,17 @@
 # This file is the main file for the web server. It handles all the routes and the main server setup.
 import aiohttp
-from quart import Quart, request, session, render_template, jsonify, Response
+from quart import Quart, redirect, request, session, render_template, jsonify, Response, url_for
 import settings as _WebSettings
 import asyncpg
 import datetime
 import logging
-import colorlog
 from quartcord import DiscordOAuth2Session
-from utility import PIL
 import sentry_sdk
 from sentry_sdk.integrations.quart import QuartIntegration
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from blueprints.api import api_bp
 from blueprints.auth import auth_bp
 from blueprints.captchag import captcha_bp
+import json
 
 sentry_sdk.init(
     dsn=_WebSettings.SENTRY_DSN,
@@ -109,6 +106,10 @@ async def privacy():
 async def terms():
     return await render_template("legal/terms.html")
 
+@app.route("/guidelines")
+async def cguidelines():
+    return await render_template("legal/cguidelines.html")
+
 @app.route("/wuwa/news/publish", methods=["POST"])
 async def wuwanews():
     data = await request.get_json()
@@ -143,3 +144,13 @@ async def login():
 @app.route("/register")
 async def register():
     return await render_template("auth/register.html")
+
+@app.route("/profile/manage")
+async def view_profile():
+    uid_cookie = request.cookies.get('uid')
+    if uid_cookie:
+        uid_data = json.loads(uid_cookie)
+        data = await app.pool.fetchrow("SELECT * FROM users WHERE username = $1", uid_data['raw']['username'])
+        return await render_template("profile/account.html", data=data)
+    
+    return redirect(url_for('login'))

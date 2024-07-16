@@ -1,8 +1,12 @@
-export function setCookie(name, value, days) {
+export function setCookie(name, value_id, value_us, days) {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
     const expires = "expires=" + date.toUTCString();
-    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+
+    // Create a JSON object to store both the value and the expiration time
+    const cookieValue = JSON.stringify({ raw: {uid: value_id, username: value_us, expiry: date.getTime() }});
+
+    document.cookie = name + "=" + cookieValue + ";" + expires + ";path=/";
 }
 
 export function getCookie(name) {
@@ -21,5 +25,5 @@ export function getCookie(name) {
 }
 
 export function eraseCookie(name) {
-    document.cookie = name + '=; Max-Age=-99999999;';
+    document.cookie = name + '=; Max-Age=-99999999; path=/';
 }

@@ -12,6 +12,8 @@
     src: url('../fonts/Source Han Sans CN Regular.otf') format('truetype');
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
 .sans-it {
   font-family: 'Source Han Sans CN Regular', sans-serif;
 }
@@ -52,6 +54,13 @@ body.dark {
   background-color: var(--dark-bg-color); /* Switch to dark mode */
   --input-glow-color: 0 0 28px rgba(255, 255, 255, 1.5);
 }
+
+body.basic-font {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
 
 .bg-fade-bottom::after {
   content: '';

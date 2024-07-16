@@ -2,15 +2,27 @@ import { _f } from './_e.js';
 import { _ } from './_err.js';
 import { _px, _pl } from './_proxy.js';
 import { _pvc_v } from './_pvc.js';
-import { getCookie, setCookie } from '../_cookie_manager.js';
+import { getCookie, setCookie, eraseCookie } from '../_cookie_manager.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Get the browser cookie named 'uid'
-    let uid = getCookie('uid');
+    let uidCookie = getCookie('uid');
 
-    // If the cookie exists, redirect the user to the account page
-    if (uid) {
-        window.location.href = '/account';
+    // If the cookie exists, parse it and check its expiration
+    if (uidCookie) {
+        let uidData = JSON.parse(uidCookie);
+        let currentTime = new Date().getTime();
+
+        if (currentTime > uidData.expiry) {
+            // If the cookie is expired, remove it and redirect the user to the login page
+            eraseCookie('uid');
+            window.location.href = '/login';
+        } else {
+            // If the cookie is not expired, redirect the user to the account page
+            window.location.href = '/profile/manage'
+        }
+    } else {
+        // If the cookie does not exist, do nothing
     }
 });
 
@@ -158,8 +170,8 @@ export function onClick(e) {
                                 }
                             } else {
                                 _._(300004, { r: 'api/auth', e: data.payload, p: 'auth'});
-                                setCookie('uid', data.raw.uid, 1);
-                                window.location.href = '/account';
+                                setCookie('uid', data.raw.uid, data.raw.username, 1);
+                                window.location.href = '/profile/manage';
                             }
                         } else if (data.status === 'error') {
                             _._(200010, { r: 'api/auth', e: data.payload, p: 'auth'});

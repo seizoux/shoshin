@@ -23,11 +23,11 @@ export function _pvc_v(e, c, p, u, us, a) {
             }
             throw new Error('Failed.');
         }).then(data => {
-            _._(data);
+            _._(1, { data: data });
             if (data.status === 'success') {
                 _._(200007, { r: 'api/auth', e: data.payload, c: c, p: 'auth'});
-                setCookie('uid', data.raw.uid, 1);
-                window.location.href = '/account';
+                setCookie('uid', data.raw.uid, data.raw.username, 1);
+                window.location.href = '/profile/manage';
             } else if (data.status === 'error') {
                 _._(200008, { r: 'api/auth', e: data.payload, c: c, p: 'auth'})
                 let errorMessage = document.getElementById('_sho-code-field-error');

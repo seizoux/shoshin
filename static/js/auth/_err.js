@@ -203,6 +203,7 @@ export class _Log1 {
             [300005, "MFA Successful", "AUTH", "LOG"],
             [300006, "MFA Failed", "AUTH", "ERROR"],
             [0, "General Error", "GENERAL", "ERROR"],
+            [1, "General Success", "GENERAL", "INFO"],
         ];
         
         commonErrors.forEach(([code, message, category, severity]) => {
