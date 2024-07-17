@@ -2,7 +2,7 @@ import { _f } from './_e.js';
 import { _ } from './_err.js';
 import { _px, _pl, _pv } from './_proxy.js';
 import { _pvc_v } from './_pvc.js';
-import { getCookie, setCookie, eraseCookie } from '../_cookie_manager.js';
+import { getCookie, eraseCookie } from '../_cookie_manager.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Get the browser cookie named 'uid'
@@ -194,7 +194,6 @@ export function onClick(e) {
                                 }
                             } else {
                                 _._(300004, { r: 'api/auth', e: data.payload, p: 'auth'});
-                                setCookie(data.raw.token, 1);
                                 window.location.href = '/profile/manage';
                             }
                         } else if (data.status === 'error') {

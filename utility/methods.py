@@ -1,8 +1,11 @@
 import os
 import time
 import hashlib
-from quart import current_app
+from quart import current_app, request, jsonify, make_response
 import hmac
+import datetime
+import json
+import base64
 
 secret_key = 'your-secret-key'  # Store this securely, e.g., in environment variables
 
@@ -54,4 +57,30 @@ async def verify_session_token(token, just_verify: bool = True):
 
 def sign_cookie(value):
     return hmac.new(secret_key.encode(), value.encode(), hashlib.sha256).hexdigest()
+
+async def set_cookie(response, token, days):
+    date = datetime.datetime.utcnow() + datetime.timedelta(days=days)
+    expires = date.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+
+    # Create a dictionary to store both the value and the expiration time
+    cookie_value = {'raw': {'token': token, 'expiry': date.timestamp()}}
+    cookie_value_json = json.dumps(cookie_value)
+
+    # Base64 encode the JSON string to avoid issues with special characters
+    cookie_value_encoded = base64.b64encode(cookie_value_json.encode()).decode()
+
+    signature = sign_cookie(cookie_value_encoded)
+    signed_value = f"{cookie_value_encoded}.{signature}"
+
+    response.set_cookie(
+        '_sho-session',
+        value=signed_value,
+        max_age=days * 24 * 60 * 60,
+        httponly=True,
+        secure=True,
+        samesite='Strict',
+        expires=expires
+    )
+    return response
+
     

@@ -1,6 +1,5 @@
 import { _pvc } from './_proxy.js';
 import { _ } from './_err.js';
-import { setCookie } from '../_cookie_manager.js';
 
 export function _pvc_v(e, c, p, u, us, a) {
     new Promise((resolve, reject) => {
@@ -26,7 +25,6 @@ export function _pvc_v(e, c, p, u, us, a) {
             _._(1, { data: data });
             if (data.status === 'success') {
                 _._(200007, { r: 'api/auth', e: data.payload, c: c, p: 'auth'});
-                setCookie(data.raw.token, 1);
                 window.location.href = '/profile/manage';
             } else if (data.status === 'error') {
                 _._(200008, { r: 'api/auth', e: data.payload, c: c, p: 'auth'})

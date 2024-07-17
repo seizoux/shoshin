@@ -9,36 +9,6 @@ from utility.methods import sign_cookie
 
 cookies_bp = Blueprint('cookies', __name__, url_prefix='/ck')
 
-@cookies_bp.route('/setcookie', methods=['POST'])
-async def set_cookie():
-    data = await request.get_json()
-    token = data.get('token')
-    days = data.get('days', 1)
-    date = datetime.datetime.utcnow() + datetime.timedelta(days=days)
-    expires = date.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
-
-    # Create a dictionary to store both the value and the expiration time
-    cookie_value = {'raw': {'token': token, 'expiry': date.timestamp()}}
-    cookie_value_json = json.dumps(cookie_value)
-
-    # Base64 encode the JSON string to avoid issues with special characters
-    cookie_value_encoded = base64.b64encode(cookie_value_json.encode()).decode()
-
-    signature = sign_cookie(cookie_value_encoded)
-    signed_value = f"{cookie_value_encoded}.{signature}"
-
-    response = await make_response(jsonify({'message': 'Cookie set'}))
-    response.set_cookie(
-        '_sho-session',
-        value=signed_value,
-        max_age=days * 24 * 60 * 60,
-        httponly=True,
-        secure=True,
-        samesite='Strict',
-        expires=expires
-    )
-    return response
-
 @cookies_bp.route('/getcookie', methods=['GET'])
 async def get_cookie():
     cookie_name = request.args.get('name')

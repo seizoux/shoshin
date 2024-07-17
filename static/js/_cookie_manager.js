@@ -5,23 +5,6 @@ const sc = _ck + 'setcookie';
 const gc = _ck + 'getcookie';
 const ec = _ck + 'erasecookie';
 
-export async function setCookie(token, days) {
-    const response = await fetch(sc, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, days })
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-        _._(1, { action: 'Cookie Set!', cookie: data }, 'cookies');
-    } else {
-        _._(0, { payload: data.message }, 'cookies');
-    }
-}
-
 export async function getCookie(name) {
     const response = await fetch(gc + `?name=${encodeURIComponent(name)}`, {
         method: 'GET',

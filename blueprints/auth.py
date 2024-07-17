@@ -40,8 +40,7 @@ Javascript Reference:
         - /captcha/google/recaptcha/verify > _px
 '''
 
-from quart import Blueprint, current_app
-from quart import request
+from quart import Blueprint, current_app, request, jsonify, make_response
 import settings as _WebSettings
 import bcrypt
 import settings as _WebSettings
@@ -50,7 +49,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import asyncio
 import aiohttp
-from utility.methods import SnowflakeIDGenerator, create_session_token, verify_session_token
+from utility.methods import SnowflakeIDGenerator, create_session_token, verify_session_token, set_cookie
 import json
 
 idgen = SnowflakeIDGenerator()
@@ -162,7 +161,19 @@ async def auth_verify():
                 token = create_session_token(user['username'])
                 await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2) ON CONFLICT (token) DO UPDATE SET token = $1", token, int(user['uid']))
                 await current_app.pool.execute("UPDATE users SET sessions = array_append(sessions, $2) WHERE uid = $1", int(user['uid']), token)
-                return {"status": "success", "payload": "Login successful, redirecting you to the account page...", "mfa": "not required", "raw": { "uid": user['uid'], "username": user['username'], "token": token}}
+                
+                # Create the response object
+                response = await make_response(jsonify({
+                    "status": "success",
+                    "payload": "Login successful, redirecting you to the account page...",
+                    "mfa": "not required",
+                    "raw": {"uid": user['uid'], "username": user['username'], "token": token}
+                }))
+                
+                # Set the cookie on the response object
+                response = await set_cookie(response, token, 1)
+                
+                return response
         else:
             return {"status": "error", "payload": "The password you entered is incorrect."}
 
@@ -187,6 +198,7 @@ async def verify_code():
             token = create_session_token(data['username'])
             await current_app.pool.execute("INSERT INTO users (email, password, wuwa_uid, username, uid, sessions) VALUES ($1, $2, $3, $4, $5, $6)", data['email'], hashed_password.decode('utf-8'), int(data['uid']), data['username'], _uuid, [token])
             await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2)", token, _uuid)
+            await set_cookie(token, 1)
             return {"status": "success", "payload": "Code is correct, redirecting you to the account page...", "raw": { "uid": data['uid'], "username": data['username'], "token": token}}
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}
@@ -198,6 +210,7 @@ async def verify_code():
             token = create_session_token(data['username'])
             await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2) ON CONFLICT (uid) DO UPDATE SET token = $1", token, int(data['uid']))
             await current_app.pool.execute("UPDATE users SET sessions = array_append(sessions, $2) WHERE uid = $1", int(data['uid']), token)
+            await set_cookie(token, 1)
             return {"status": "success", "payload": "Code is correct, redirecting you to the account page...", "raw": { "uid": data['uid'], "username": data['username'], "token": token}}
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}
