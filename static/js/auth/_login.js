@@ -4,13 +4,13 @@ import { _px, _pl, _pv } from './_proxy.js';
 import { _pvc_v } from './_pvc.js';
 import { getCookie, setCookie, eraseCookie } from '../_cookie_manager.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Get the browser cookie named 'uid'
-    let uidCookie = getCookie('_sho-session');
+    let uidCookie = await getCookie('_sho-session');
 
     // If the cookie exists, parse it and check its expiration
     if (uidCookie) {
-        let uidData = JSON.parse(uidCookie);
+        let uidData = uidCookie;
         _._(1, { r: 'api/auth', e: uidData, p: 'auth'}, true);
         let currentTime = new Date().getTime();
 
@@ -37,12 +37,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else if (data.status === 'error') {
                     _._(200012, { r: 'api/auth', e: data.payload, p: 'auth'});
                     eraseCookie('_sho-session');
-                    //window.location.href = '/login';
+                    window.location.href = '/login';
                 }
             }).catch(error => {
                 console.error(error);
                 eraseCookie('_sho-session');
-                //window.location.href = '/login';
+                window.location.href = '/login';
             });
         }
     } else {
@@ -194,7 +194,7 @@ export function onClick(e) {
                                 }
                             } else {
                                 _._(300004, { r: 'api/auth', e: data.payload, p: 'auth'});
-                                setCookie('_sho-session', data.raw.token, 1);
+                                setCookie(data.raw.token, 1);
                                 window.location.href = '/profile/manage';
                             }
                         } else if (data.status === 'error') {

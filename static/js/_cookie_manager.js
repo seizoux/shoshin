@@ -1,29 +1,59 @@
-export function setCookie(name, token, days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + date.toUTCString();
+import { _ck } from './auth/_proxy.js';
+import { _ } from './auth/_err.js';
 
-    // Create a JSON object to store both the value and the expiration time
-    const cookieValue = JSON.stringify({ raw: {token: token, expiry: date.getTime() }});
+const sc = _ck + 'setcookie';
+const gc = _ck + 'getcookie';
+const ec = _ck + 'erasecookie';
 
-    document.cookie = name + "=" + cookieValue + ";" + expires + ";path=/";
-}
+export async function setCookie(token, days) {
+    const response = await fetch(sc, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token, days })
+    });
 
-export function getCookie(name) {
-    const nameEQ = name + "=";
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(nameEQ) === 0) {
-            return c.substring(nameEQ.length, c.length);
-        }
+    const data = await response.json();
+    if (response.ok) {
+        _._(1, { action: 'Cookie Set!', cookie: data }, 'cookies');
+    } else {
+        _._(0, { payload: data.message }, 'cookies');
     }
-    return null;
 }
 
-export function eraseCookie(name) {
-    document.cookie = name + '=; Max-Age=-99999999; path=/';
+export async function getCookie(name) {
+    const response = await fetch(gc + `?name=${encodeURIComponent(name)}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'include'  // Ensure cookies are included in the request
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+        console.log('Retrieved Cookie!', data);
+        return data;
+    } else {
+        console.error('Failed to retrieve cookie:', data.message);
+    }
+}
+
+export async function eraseCookie(name) {
+    const response = await fetch(ec, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Cookie': name,
+        },
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+        _._(1, { action: 'Cookie Erased!', cookie: data }, 'cookies');
+        return data;
+    } else {
+        _._(0, { payload: data.message }, 'cookies');
+    }
 }

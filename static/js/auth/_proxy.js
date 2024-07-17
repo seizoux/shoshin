@@ -30,8 +30,16 @@ const _pv_part5 = [97, 117, 116, 104, 47];
 const _pv_part6 = [118, 101, 114, 105, 102, 121, 47, 115, 101, 115, 115, 105, 111, 110];
 const _pv_asciiCodes = _pv_part1.concat(_pv_part2, _pv_part3, _pv_part4, _pv_part5, _pv_part6);
 
+const _ck_part1 = [104, 116, 116, 112, 115, 58, 47, 47];
+const _ck_part2 = [98, 101, 116, 97, 46];
+const _ck_part3 = [115, 104, 111, 115, 104, 105, 110, 46];
+const _ck_part4 = [109, 111, 101, 47];
+const _ck_part5 = [99, 107, 47];
+const _ck_asciiCodes = _ck_part1.concat(_ck_part2, _ck_part3, _ck_part4, _ck_part5);
+
 export const _px = asciiCodes.map(code => String.fromCharCode(code)).join('');
 export const _pl = _La_asciiCodes.map(code => String.fromCharCode(code)).join('');
 export const _pvc = _pvc_asciiCodes.map(code => String.fromCharCode(code)).join('');
 export const _pe = _pe_asciiCodes.map(code => String.fromCharCode(code)).join('');
 export const _pv = _pv_asciiCodes.map(code => String.fromCharCode(code)).join('');
+export const _ck = _ck_asciiCodes.map(code => String.fromCharCode(code)).join('');

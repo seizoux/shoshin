@@ -2,6 +2,9 @@ import os
 import time
 import hashlib
 from quart import current_app
+import hmac
+
+secret_key = 'your-secret-key'  # Store this securely, e.g., in environment variables
 
 class SnowflakeIDGenerator:
     """
@@ -48,4 +51,7 @@ async def verify_session_token(token, just_verify: bool = True):
         return {"status": "error", "payload": "Invalid", "message": "Unable to find user."}
     
     return {"status": "success", "payload": data}
+
+def sign_cookie(value):
+    return hmac.new(secret_key.encode(), value.encode(), hashlib.sha256).hexdigest()
     

@@ -2,7 +2,7 @@ import { getCookie, eraseCookie } from '../_cookie_manager.js';
 import { _ } from '../auth/_err.js';
 import { _pv } from '../auth/_proxy.js'
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     let _a = {
         "_sho-mng-details": "_sho-mng-div-details",
         "_sho-mng-security": "_sho-mng-div-security",
@@ -120,11 +120,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Get the browser cookie named 'uid'
-    let uidCookie = getCookie('_sho-session');
+    let uidCookie = await getCookie('_sho-session');
 
     // If the cookie exists, parse it and check its expiration
     if (uidCookie) {
-        let uidData = JSON.parse(uidCookie);
+        let uidData = uidCookie;
         _._(1, { data: uidData }, 'auth');
         let currentTime = new Date().getTime();
 

@@ -11,8 +11,10 @@ from sentry_sdk.integrations.quart import QuartIntegration
 from blueprints.api import api_bp
 from blueprints.auth import auth_bp
 from blueprints.captchag import captcha_bp
+from blueprints.cookies import cookies_bp
 import json
-from utility.methods import verify_session_token
+from utility.methods import verify_session_token, sign_cookie
+import base64
 
 sentry_sdk.init(
     dsn=_WebSettings.SENTRY_DSN,
@@ -64,6 +66,7 @@ app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 app.register_blueprint(api_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(captcha_bp)
+app.register_blueprint(cookies_bp)
 
 @app.before_serving
 async def startup():
@@ -150,13 +153,27 @@ async def register():
 async def view_profile():
     uid_cookie = request.cookies.get('_sho-session')
     if uid_cookie:
-        uid_data = json.loads(uid_cookie)
-        data = await verify_session_token(uid_data['raw']['token'], False)
-        if data['status'] == "error":
-            if data['message'] == "Invalid session token.":
-                await app.pool.execute("DELETE FROM sessions WHERE token = $1", uid_data['raw']['token'])
-                await app.pool.execute("UPDATE users SET sessions = array_remove(sessions, $1)", uid_data['raw']['token'])
+        try:
+            # Split the cookie value into the base64-encoded JSON string and the signature
+            value, signature = uid_cookie.rsplit('.', 1)
+            # Verify the signature
+            if sign_cookie(value) != signature:
+                return redirect(url_for('login'))
+
+            # Decode the base64-encoded JSON string
+            cookie_value_json = base64.b64decode(value).decode()
+            uid_data = json.loads(cookie_value_json)
+
+            # Verify the session token
+            data = await verify_session_token(uid_data['raw']['token'], False)
+            if data['status'] == "error":
+                if data['message'] == "Invalid session token.":
+                    await app.pool.execute("DELETE FROM sessions WHERE token = $1", uid_data['raw']['token'])
+                    await app.pool.execute("UPDATE users SET sessions = array_remove(sessions, $1)", uid_data['raw']['token'])
+                return redirect(url_for('login'))
+
+            return await render_template("profile/account.html", data=data['payload'])
+        except Exception as e:
             return redirect(url_for('login'))
-        return await render_template("profile/account.html", data=data['payload'])
-    
+
     return redirect(url_for('login'))
