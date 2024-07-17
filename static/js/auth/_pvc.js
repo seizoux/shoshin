@@ -26,7 +26,7 @@ export function _pvc_v(e, c, p, u, us, a) {
             _._(1, { data: data });
             if (data.status === 'success') {
                 _._(200007, { r: 'api/auth', e: data.payload, c: c, p: 'auth'});
-                setCookie('uid', data.raw.uid, data.raw.username, 1);
+                setCookie('_sho-session', data.raw.token, 1);
                 window.location.href = '/profile/manage';
             } else if (data.status === 'error') {
                 _._(200008, { r: 'api/auth', e: data.payload, c: c, p: 'auth'})

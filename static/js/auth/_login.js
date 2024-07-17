@@ -1,25 +1,49 @@
 import { _f } from './_e.js';
 import { _ } from './_err.js';
-import { _px, _pl } from './_proxy.js';
+import { _px, _pl, _pv } from './_proxy.js';
 import { _pvc_v } from './_pvc.js';
 import { getCookie, setCookie, eraseCookie } from '../_cookie_manager.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     // Get the browser cookie named 'uid'
-    let uidCookie = getCookie('uid');
+    let uidCookie = getCookie('_sho-session');
 
     // If the cookie exists, parse it and check its expiration
     if (uidCookie) {
         let uidData = JSON.parse(uidCookie);
+        _._(1, { r: 'api/auth', e: uidData, p: 'auth'}, true);
         let currentTime = new Date().getTime();
 
         if (currentTime > uidData.expiry) {
             // If the cookie is expired, remove it and redirect the user to the login page
-            eraseCookie('uid');
+            eraseCookie('_sho-session');
             window.location.href = '/login';
         } else {
             // If the cookie is not expired, redirect the user to the account page
-            window.location.href = '/profile/manage'
+            fetch(_pv, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ token: uidData.raw.token, just_verify: false, action: null }) 
+            }
+            ).then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Failed to verify session');
+            }).then(data => {
+                if (data.status === 'success') {
+                    _._(200011, { r: 'api/auth', e: data.payload, p: 'auth'});
+                    window.location.href = '/profile/manage';
+                } else if (data.status === 'error') {
+                    _._(200012, { r: 'api/auth', e: data.payload, p: 'auth'});
+                    eraseCookie('_sho-session');
+                    //window.location.href = '/login';
+                }
+            }).catch(error => {
+                console.error(error);
+                eraseCookie('_sho-session');
+                //window.location.href = '/login';
+            });
         }
     } else {
         // If the cookie does not exist, do nothing
@@ -170,7 +194,7 @@ export function onClick(e) {
                                 }
                             } else {
                                 _._(300004, { r: 'api/auth', e: data.payload, p: 'auth'});
-                                setCookie('uid', data.raw.uid, data.raw.username, 1);
+                                setCookie('_sho-session', data.raw.token, 1);
                                 window.location.href = '/profile/manage';
                             }
                         } else if (data.status === 'error') {

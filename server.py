@@ -12,6 +12,7 @@ from blueprints.api import api_bp
 from blueprints.auth import auth_bp
 from blueprints.captchag import captcha_bp
 import json
+from utility.methods import verify_session_token
 
 sentry_sdk.init(
     dsn=_WebSettings.SENTRY_DSN,
@@ -147,10 +148,15 @@ async def register():
 
 @app.route("/profile/manage")
 async def view_profile():
-    uid_cookie = request.cookies.get('uid')
+    uid_cookie = request.cookies.get('_sho-session')
     if uid_cookie:
         uid_data = json.loads(uid_cookie)
-        data = await app.pool.fetchrow("SELECT * FROM users WHERE username = $1", uid_data['raw']['username'])
-        return await render_template("profile/account.html", data=data)
+        data = await verify_session_token(uid_data['raw']['token'], False)
+        if data['status'] == "error":
+            if data['message'] == "Invalid session token.":
+                await app.pool.execute("DELETE FROM sessions WHERE token = $1", uid_data['raw']['token'])
+                await app.pool.execute("UPDATE users SET sessions = array_remove(sessions, $1)", uid_data['raw']['token'])
+            return redirect(url_for('login'))
+        return await render_template("profile/account.html", data=data['payload'])
     
     return redirect(url_for('login'))

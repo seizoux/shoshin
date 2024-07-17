@@ -1,10 +1,10 @@
-export function setCookie(name, value_id, value_us, days) {
+export function setCookie(name, token, days) {
     const date = new Date();
     date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
     const expires = "expires=" + date.toUTCString();
 
     // Create a JSON object to store both the value and the expiration time
-    const cookieValue = JSON.stringify({ raw: {uid: value_id, username: value_us, expiry: date.getTime() }});
+    const cookieValue = JSON.stringify({ raw: {token: token, expiry: date.getTime() }});
 
     document.cookie = name + "=" + cookieValue + ";" + expires + ";path=/";
 }
