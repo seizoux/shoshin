@@ -83,4 +83,74 @@ async def set_cookie(response, token, days):
     )
     return response
 
+def fetch_achievements(achievements):
+    achivements_icons_folder_path = "https://beta.shoshin.moe/static/achievements"
+
+    achievements_data = {
+        "comment_post": {
+            "name": "First Comment",
+            "description": "You've posted 1000 comments in total, amazing!",
+            "icon": f"{achivements_icons_folder_path}/comment_post.png"
+        },
+        "contributor": {
+            "name": "Contributor",
+            "description": "You've contributed to the community!",
+            "icon": f"{achivements_icons_folder_path}/contributor.png"
+        },
+        "create_account": {
+            "name": "Account Created",
+            "description": "You've successfully created an account, WOW!",
+            "icon": f"{achivements_icons_folder_path}/create_account.png"
+        },
+        "leave_a_like": {
+            "name": "First Like",
+            "description": "You've left more than 1.500 likes!",
+            "icon": f"{achivements_icons_folder_path}/leave_a_like.png"
+        },
+        "link_discord": {
+            "name": "Discord Linked",
+            "description": "You've linked your Discord account to your Shoshin account!",
+            "icon": f"{achivements_icons_folder_path}/link_discord.png"
+        },
+        "one_year": {
+            "name": "One Year",
+            "description": "You've been with us for a year, keep it up!",
+            "icon": f"{achivements_icons_folder_path}/one_year.png"
+        },
+        "repost_post": {
+            "name": "First Repost",
+            "description": "You've reposted other people posts over 500 times!",
+            "icon": f"{achivements_icons_folder_path}/repost_post.png"
+        },
+        "select_gender": {
+            "name": "Select Your Gender",
+            "description": "You've selected your gender in your account settings!",
+            "icon": f"{achivements_icons_folder_path}/select_gender.png"
+        },
+        "special": {
+            "name": "Special",
+            "description": "You're special! (seriously, you are)",
+            "icon": f"{achivements_icons_folder_path}/special.png"
+        },
+        "upload_picture": {
+            "name": "Upload Picture",
+            "description": "You've posted pictures over 200 times!",
+            "icon": f"{achivements_icons_folder_path}/upload_picture.png"
+        },
+        "upload_video": {
+            "name": "Upload Video",
+            "description": "You've uploaded 200 videos!",
+            "icon": f"{achivements_icons_folder_path}/upload_video.png"
+        }
+    }
+
+    for ach in achievements:
+        if ach['name'] in achievements_data:
+            achievements_data[ach['name']]['time'] = ach['time']
+
+    return {
+        "owned": [achievements_data[ach['name']] for ach in achievements if ach['name'] in achievements_data],
+        "not_owned": [achievements_data[ach] for ach in achievements_data if ach not in [ac['name'] for ac in achievements]]
+    }
+
     

@@ -51,6 +51,7 @@ import asyncio
 import aiohttp
 from utility.methods import SnowflakeIDGenerator, create_session_token, verify_session_token, set_cookie
 import json
+import datetime
 
 idgen = SnowflakeIDGenerator()
 
@@ -196,10 +197,23 @@ async def verify_code():
             _uuid = idgen.generate_id()
 
             token = create_session_token(data['username'])
-            await current_app.pool.execute("INSERT INTO users (email, password, wuwa_uid, username, uid, sessions) VALUES ($1, $2, $3, $4, $5, $6)", data['email'], hashed_password.decode('utf-8'), int(data['uid']), data['username'], _uuid, [token])
+            await current_app.pool.execute("INSERT INTO users (email, password, wuwa_uid, username, uid, sessions, achievements) VALUES ($1, $2, $3, $4, $5, $6, ARRAY[$7::json])", 
+                                           data['email'], hashed_password.decode('utf-8'), int(data['uid']), data['username'], _uuid, [token], json.dumps({'name': 'create_account', 'time': datetime.datetime.now().timestamp()})
+                                           )
             await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2)", token, _uuid)
-            await set_cookie(token, 1)
-            return {"status": "success", "payload": "Code is correct, redirecting you to the account page...", "raw": { "uid": data['uid'], "username": data['username'], "token": token}}
+
+            # Create the response object
+            response = await make_response(jsonify({
+                "status": "success",
+                "payload": "Code is correct, redirecting you to the account page...",
+                "raw": { "uid": data['uid'], "username": data['username'], "token": token}
+            }))
+        
+
+            # Set the cookie on the response object
+            response = await set_cookie(response, token, 1)
+            
+            return response
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}
         
@@ -210,8 +224,18 @@ async def verify_code():
             token = create_session_token(data['username'])
             await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2) ON CONFLICT (uid) DO UPDATE SET token = $1", token, int(data['uid']))
             await current_app.pool.execute("UPDATE users SET sessions = array_append(sessions, $2) WHERE uid = $1", int(data['uid']), token)
-            await set_cookie(token, 1)
-            return {"status": "success", "payload": "Code is correct, redirecting you to the account page...", "raw": { "uid": data['uid'], "username": data['username'], "token": token}}
+
+            # Create the response object
+            response = await make_response(jsonify({
+                "status": "success",
+                "payload": "Code is correct, redirecting you to the account page...",
+                "raw": { "uid": data['uid'], "username": data['username'], "token": token}
+            }))
+            
+            # Set the cookie on the response object
+            response = await set_cookie(response, token, 1)
+            
+            return response
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}
         

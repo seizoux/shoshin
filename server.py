@@ -13,7 +13,7 @@ from blueprints.auth import auth_bp
 from blueprints.captchag import captcha_bp
 from blueprints.cookies import cookies_bp
 import json
-from utility.methods import verify_session_token, sign_cookie
+from utility.methods import verify_session_token, sign_cookie, fetch_achievements
 import base64
 
 sentry_sdk.init(
@@ -27,6 +27,10 @@ sentry_sdk.init(
     # We recommend adjusting this value in production.
     profiles_sample_rate=1.0,
 )
+
+def format_datetime(value, format='%d %b %Y, %I:%M %p'):
+    """Format a timestamp to a readable date."""
+    return datetime.datetime.fromtimestamp(value).strftime(format)
 
 async def get_patrons():
     url = 'https://www.patreon.com/api/oauth2/v2/campaigns/6344774/members'
@@ -61,6 +65,7 @@ log = logging.getLogger("hypercorn")
 log.setLevel(logging.INFO)
 
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
+app.jinja_env.filters['datetime'] = format_datetime
 
 # Register blueprints
 app.register_blueprint(api_bp)
@@ -166,14 +171,18 @@ async def view_profile():
 
             # Verify the session token
             data = await verify_session_token(uid_data['raw']['token'], False)
+            print(f"Data: {data}")
             if data['status'] == "error":
                 if data['message'] == "Invalid session token.":
                     await app.pool.execute("DELETE FROM sessions WHERE token = $1", uid_data['raw']['token'])
                     await app.pool.execute("UPDATE users SET sessions = array_remove(sessions, $1)", uid_data['raw']['token'])
                 return redirect(url_for('login'))
 
-            return await render_template("profile/account.html", data=data['payload'])
+            _un = fetch_achievements([json.loads(ach) for ach in data['payload']['achievements']])
+
+            return await render_template("profile/account.html", data=data['payload'], achievements=_un)
         except Exception as e:
+            log.error(e)
             return redirect(url_for('login'))
 
     return redirect(url_for('login'))

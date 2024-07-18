@@ -436,6 +436,40 @@
                 </div>
             </div>
         </div>
+        <div id="_sho-mng-div-achievements" class="bg-[#191f22] overflow-y-scroll w-full">
+            <div class="flex flex-col gap-8 p-4 items-center justify-center">
+                <div class="flex flex-col gap-4 w-4/5">
+                    <h1 class="text-white font-bold text-4xl w-4/5 mt-8">Your Achievements</h1>
+                    <p class="text-gray-300 font-normal text-sm">Here you can see all the achievements you've unlocked on the platform. Keep up the good work!</p>
+                </div>
+                <p class="text-white font-bold text-md underline underline-offset-4 decoration-4 decoration-white w-4/5">Achievements Unlocked</p>
+                <div class="bg-orange-500/50 border w-4/5 p-4 gap-16 rounded-md relative">
+                    <div class="grid grid-cols-3 md:grid-cols-5 gap-x-2 gap-y-6 p-2">
+                    {% for ach in achievements['owned'] %}
+                        <div class="flex flex-col gap-2 items-center">
+                            <img src="{{ ach['icon'] }}" class="w-32 h-auto">
+                            <p class="text-white font-medium text-2xl">{{ ach['name'] }}</p>
+                            <p class="text-gray-300 font-normal text-sm">{{ ach['description'] }}</p>
+                            <p class="text-white font-bold text-xs">Unlocked at {{ ach['time'] | datetime }}</p>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+                <hr class="h-px w-4/5 bg-gray-200 border-0 mx-4 mb-6 mt-6">
+                <p class="text-white font-bold text-md underline underline-offset-4 decoration-4 decoration-white w-4/5">Achievements Locked</p>
+                <div class="bg-orange-500/50 border w-4/5 p-4 gap-16 rounded-md relative">
+                    <div class="grid grid-cols-3 md:grid-cols-5 gap-x-2 gap-y-6 p-2">
+                    {% for ach in achievements['not_owned'] %}
+                        <div class="flex flex-col gap-1 items-center">
+                            <img src="{{ ach['icon'] }}" class="w-32 h-auto blur-sm">
+                            <p class="text-white font-medium text-2xl">{{ ach['name'] }}</p>
+                            <p class="text-gray-300 font-normal text-sm text-center">{{ ach['description'] }}</p>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </grid>
 </body>
 </html>

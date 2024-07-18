@@ -32,10 +32,10 @@ document.addEventListener('DOMContentLoaded', async function() {
                 throw new Error('Failed to verify session');
             }).then(data => {
                 if (data.status === 'success') {
-                    _._(200011, { r: 'api/auth', e: data.payload, p: 'auth'});
+                    _._(1, { r: 'api/auth', e: data.payload, p: 'auth'});
                     window.location.href = '/profile/manage';
                 } else if (data.status === 'error') {
-                    _._(200012, { r: 'api/auth', e: data.payload, p: 'auth'});
+                    _._(0, { r: 'api/auth', e: data.payload, p: 'auth'});
                     eraseCookie('_sho-session');
                     window.location.href = '/login';
                 }

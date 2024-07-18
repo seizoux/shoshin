@@ -151,12 +151,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                     _._(200012, { r: 'api/auth', e: data.payload, p: 'auth'});
                     console.error(error);
                     eraseCookie('_sho-session');
-                    //window.location.href = '/login';
+                    window.location.href = '/login';
                 }
             }).catch(error => {
                 console.error(error);
                 eraseCookie('_sho-session');
-                //window.location.href = '/login';
+                window.location.href = '/login';
             });
         }
     } else {
