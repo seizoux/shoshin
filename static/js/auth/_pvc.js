@@ -11,7 +11,7 @@ export function _pvc_v(e, c, p, u, us, a) {
             body: JSON.stringify({
                 email: e,
                 code: c,
-                pass: p,
+                passw: p,
                 uid: u,
                 username: us,
                 action: a

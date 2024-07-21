@@ -106,3 +106,15 @@ body.dark .bg-fade-bottom::after {
   display: flex;
   justify-content: center;
 }
+
+.glow {
+  box-shadow: 0 0 28px rgb(201, 235, 10, 1);
+}
+
+.pop-glow {
+  box-shadow: 0 0 28px rgba(255, 255, 255, 0.3);
+}
+
+.glow-lock {
+  box-shadow: 0 0 28px rgb(235, 25, 10);
+}

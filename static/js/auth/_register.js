@@ -48,9 +48,6 @@ export function RonClick(e) {
                         },
                         body: JSON.stringify({
                             email: email,
-                            password: password,
-                            uid: uid,
-                            username: username,
                             action: "register"
                         })
                     }).then(response => {

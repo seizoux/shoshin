@@ -6,6 +6,7 @@ import hmac
 import datetime
 import json
 import base64
+from functools import wraps
 
 secret_key = 'your-secret-key'  # Store this securely, e.g., in environment variables
 
@@ -32,6 +33,16 @@ class SnowflakeIDGenerator:
 
         return (timestamp << 22) | (self.worker_id << 12) | self.sequence
 
+def requires_valid_origin(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        origin = request.headers.get('Origin')
+        allowed_origin = "https://beta.shoshin.moe"
+        if origin != allowed_origin:
+            return jsonify({"msg": "Forbidden"}), 403
+        return await func(*args, **kwargs)
+    return wrapper
+
 # Function to create a session token
 def create_session_token(username):
     token = hashlib.sha256(f"{username}{time.time()}".encode()).hexdigest()
@@ -42,8 +53,8 @@ async def verify_session_token(token, just_verify: bool = True):
     if just_verify:
         _v = await current_app.pool.fetchrow("SELECT * FROM sessions WHERE token = $1", token)
         if not _v:
-            return False
-        return True
+            return {"status": "error", "payload": False}
+        return {"status": "success", "payload": True}
     
     _v = await current_app.pool.fetchrow("SELECT * FROM sessions WHERE token = $1", token)
     if not _v:
@@ -88,58 +99,58 @@ def fetch_achievements(achievements):
 
     achievements_data = {
         "comment_post": {
-            "name": "First Comment",
-            "description": "You've posted 1000 comments in total, amazing!",
+            "name": "Social Butterfly",
+            "description": "People love your comments, you've commented over 500 times!",
             "icon": f"{achivements_icons_folder_path}/comment_post.png"
         },
         "contributor": {
             "name": "Contributor",
-            "description": "You've contributed to the community!",
+            "description": "Developers love you, you've contributed to this project!",
             "icon": f"{achivements_icons_folder_path}/contributor.png"
         },
         "create_account": {
-            "name": "Account Created",
-            "description": "You've successfully created an account, WOW!",
+            "name": "One Of Us",
+            "description": "Brave enough to join us, nothing less than a hero!",
             "icon": f"{achivements_icons_folder_path}/create_account.png"
         },
         "leave_a_like": {
-            "name": "First Like",
-            "description": "You've left more than 1.500 likes!",
+            "name": "Sharing Love",
+            "description": "Can't stop liking posts, you've liked over 1.500 posts!",
             "icon": f"{achivements_icons_folder_path}/leave_a_like.png"
         },
         "link_discord": {
-            "name": "Discord Linked",
-            "description": "You've linked your Discord account to your Shoshin account!",
+            "name": "Multi-Platform",
+            "description": "Uh-oh? Discord? Everything is connected!",
             "icon": f"{achivements_icons_folder_path}/link_discord.png"
         },
         "one_year": {
-            "name": "One Year",
-            "description": "You've been with us for a year, keep it up!",
+            "name": "Veteran",
+            "description": "Not even moving, you've been here for over a year!",
             "icon": f"{achivements_icons_folder_path}/one_year.png"
         },
         "repost_post": {
-            "name": "First Repost",
-            "description": "You've reposted other people posts over 500 times!",
+            "name": "Repost King",
+            "description": "Don't you get tired of reposting? You've reposted over 500 posts!",
             "icon": f"{achivements_icons_folder_path}/repost_post.png"
         },
         "select_gender": {
-            "name": "Select Your Gender",
-            "description": "You've selected your gender in your account settings!",
+            "name": "Identified",
+            "description": "They/them? He/him? She/her? Who knows... You do!",
             "icon": f"{achivements_icons_folder_path}/select_gender.png"
         },
         "special": {
-            "name": "Special",
+            "name": "Truly Special",
             "description": "You're special! (seriously, you are)",
             "icon": f"{achivements_icons_folder_path}/special.png"
         },
         "upload_picture": {
-            "name": "Upload Picture",
-            "description": "You've posted pictures over 200 times!",
+            "name": "Memory Keeper",
+            "description": "Every picture tells a story, you've uploaded over 200 pictures!",
             "icon": f"{achivements_icons_folder_path}/upload_picture.png"
         },
         "upload_video": {
-            "name": "Upload Video",
-            "description": "You've uploaded 200 videos!",
+            "name": "Videographer",
+            "description": "Lights, camera, action! You've uploaded over 200 videos!",
             "icon": f"{achivements_icons_folder_path}/upload_video.png"
         }
     }

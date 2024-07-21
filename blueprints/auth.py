@@ -49,9 +49,11 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import asyncio
 import aiohttp
-from utility.methods import SnowflakeIDGenerator, create_session_token, verify_session_token, set_cookie
+from utility.methods import SnowflakeIDGenerator, create_session_token, verify_session_token, set_cookie, requires_valid_origin
+from utility.schemas import Authentication, SessionToken, UserAuth, requires
 import json
 import datetime
+from quart_cors import cors, route_cors
 
 idgen = SnowflakeIDGenerator()
 
@@ -67,22 +69,19 @@ async def get_location(ip):
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @auth_bp.route("/verify", methods=["POST"])
-async def auth_verify():
-    data = await request.get_json()
-    if not data:
-        return {"status": "error", "payload": "No data provided."}
+@requires(UserAuth)
+@route_cors(allow_origin="https://beta.shoshin.moe")
+@requires_valid_origin
+async def auth_verify(data):
 
-    if not all([x in data for x in ["email", "password", "action"]]):
-        return {"status": "error", "payload": "Missing required fields: email, password, action"}
-
-    if data['action'] == "register":
-        user = await current_app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data["email"])
+    if data.action == "register":
+        user = await current_app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data.email)
         if user:
             return {"status": "error", "payload": "This email is already registered. Please login."}
         
         message = Mail(
             from_email='no-reply@shoshin.moe',
-            to_emails=data['email'],
+            to_emails=data.email,
             subject='Welcome to Shoshin!'
         )
 
@@ -90,11 +89,11 @@ async def auth_verify():
         vc = random.randint(100000, 999999)
 
         # Check if there is already a code for this email
-        existing_code = await current_app.pool.fetchrow("SELECT code FROM verification_codes WHERE email = $1", data['email'])
+        existing_code = await current_app.pool.fetchrow("SELECT code FROM verification_codes WHERE email = $1", data.email)
         if existing_code:
             vc = existing_code['code']
         else:
-            await current_app.pool.execute("INSERT INTO verification_codes (email, code) VALUES ($1, $2)", data['email'], vc)
+            await current_app.pool.execute("INSERT INTO verification_codes (email, code) VALUES ($1, $2)", data.email, vc)
 
         message.dynamic_template_data = {
             'VERIFICATION_CODE': vc,
@@ -109,7 +108,7 @@ async def auth_verify():
         except Exception as e:
             return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
     
-    elif data['action'] == "login":
+    elif data.action == "login":
         # Get the client's IP address
         client_ip = request.remote_addr
         
@@ -117,16 +116,16 @@ async def auth_verify():
         if 'X-Forwarded-For' in request.headers:
             client_ip = request.headers['X-Forwarded-For'].split(',')[0].strip()
 
-        user = await current_app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data["email"])
+        user = await current_app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data.email)
         if not user:
             return {"status": "error", "payload": "This email is not registered. Please register."}
         
-        if bcrypt.checkpw(data['password'].encode('utf-8'), user['password'].encode('utf-8')):
+        if bcrypt.checkpw(data.password.encode('utf-8'), user['password'].encode('utf-8')):
 
             if user['mfa'] == True:
                 message = Mail(
                     from_email='no-reply@shoshin.moe',
-                    to_emails=data['email'],
+                    to_emails=data.email,
                     subject='New Login Request'
                 )
 
@@ -134,11 +133,11 @@ async def auth_verify():
                 vc = random.randint(100000, 999999)
 
                 # Check if there is already a code for this email
-                existing_code = await current_app.pool.fetchrow("SELECT code FROM verification_codes WHERE email = $1", data['email'])
+                existing_code = await current_app.pool.fetchrow("SELECT code FROM verification_codes WHERE email = $1", data.email)
                 if existing_code:
                     vc = existing_code['code']
                 else:
-                    await current_app.pool.execute("INSERT INTO verification_codes (email, code) VALUES ($1, $2)", data['email'], vc)
+                    await current_app.pool.execute("INSERT INTO verification_codes (email, code) VALUES ($1, $2)", data.email, vc)
 
                 # Get the country from the IP address
                 ip_data = await get_location(client_ip)    
@@ -179,26 +178,24 @@ async def auth_verify():
             return {"status": "error", "payload": "The password you entered is incorrect."}
 
 @auth_bp.route('/verify/code', methods=['POST'])
-async def verify_code():
-    data = await request.get_json()
-    if not data:
-        return {"status": "error", "message": "No data provided."}
-
-    if data['action'] == "register":
-        if not all([x in data for x in ["email", "code", "pass", "uid", "username", "action"]]):
-            return {"status": "error", "payload": "Missing required fields: email, code, pass, uid, username, action"}
-
-    if data['action'] == "register":
-        code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data['email'], int(data['code']))
+@requires(Authentication)
+@route_cors(allow_origin="https://beta.shoshin.moe")
+@requires_valid_origin
+async def verify_code(data):
+    if data.action == "register":
+        if not all([data.email, data.code, data.passw, data.uid, data.username, data.action]):
+            return {"status": "error", "payload": "Missing required fields: email, code, passw, uid, username, action"}
+        
+        code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data.email, int(data.code))
         if code:
-            await current_app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
+            await current_app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data.email)
             
-            hashed_password = await asyncio.to_thread(bcrypt.hashpw, data['pass'].encode('utf-8'), bcrypt.gensalt())
+            hashed_password = await asyncio.to_thread(bcrypt.hashpw, data.passw.encode('utf-8'), bcrypt.gensalt())
             _uuid = idgen.generate_id()
 
-            token = create_session_token(data['username'])
-            await current_app.pool.execute("INSERT INTO users (email, password, wuwa_uid, username, uid, sessions, achievements) VALUES ($1, $2, $3, $4, $5, $6, ARRAY[$7::json])", 
-                                           data['email'], hashed_password.decode('utf-8'), int(data['uid']), data['username'], _uuid, [token], json.dumps({'name': 'create_account', 'time': datetime.datetime.now().timestamp()})
+            token = create_session_token(data.username)
+            await current_app.pool.execute("INSERT INTO users (email, password, wuwa_uid, username, uid, sessions, achievements, registered_at) VALUES ($1, $2, $3, $4, $5, $6, ARRAY[$7::json], $8)", 
+                                           data.email, hashed_password.decode('utf-8'), int(data.uid), data.username, _uuid, [token], json.dumps({'name': 'create_account', 'time': datetime.datetime.now().timestamp()}), datetime.datetime.now()
                                            )
             await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2)", token, _uuid)
 
@@ -206,7 +203,7 @@ async def verify_code():
             response = await make_response(jsonify({
                 "status": "success",
                 "payload": "Code is correct, redirecting you to the account page...",
-                "raw": { "uid": data['uid'], "username": data['username'], "token": token}
+                "raw": { "uid": data.uid, "username": data.username, "token": token}
             }))
         
 
@@ -217,19 +214,20 @@ async def verify_code():
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}
         
-    elif data['action'] == "login":
-        code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data['email'], int(data['code']))
+    elif data.action == "login":
+        code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data.email, int(data.code))
         if code:
-            await current_app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data['email'])
-            token = create_session_token(data['username'])
-            await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2) ON CONFLICT (uid) DO UPDATE SET token = $1", token, int(data['uid']))
-            await current_app.pool.execute("UPDATE users SET sessions = array_append(sessions, $2) WHERE uid = $1", int(data['uid']), token)
+            await current_app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data.email)
+            token = create_session_token(data.username)
+            uid = await current_app.pool.fetchval("SELECT uid FROM users WHERE email = $1", data.email)
+            await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2)", token, uid)
+            await current_app.pool.execute("UPDATE users SET sessions = array_append(sessions, $2) WHERE uid = $1", uid, token)
 
             # Create the response object
             response = await make_response(jsonify({
                 "status": "success",
                 "payload": "Code is correct, redirecting you to the account page...",
-                "raw": { "uid": data['uid'], "username": data['username'], "token": token}
+                "raw": { "uid": data.uid, "username": data.username, "token": token}
             }))
             
             # Set the cookie on the response object
@@ -239,25 +237,18 @@ async def verify_code():
         else:
             return {"status": "error", "payload": "The code you entered is incorrect."}
         
-@auth_bp.route('/verify/session', methods=['POST'])
-async def verify_token():
-    data = await request.get_json()
-    print(data)
-    token = data['token']
-    jv = data['just_verify']
-    ac = data['action']
+@auth_bp.route('/verify/session', methods=['POST', 'OPTIONS'])
+@requires(SessionToken)
+@route_cors(allow_origin="https://beta.shoshin.moe")
+@requires_valid_origin
+async def verify_token(data):
+    token = data.token
+    jv = data.just_verify
+    ac = data.action
 
-    if not ac:
-        verify = await verify_session_token(token, jv)
-        
-        if verify['status'] == "success":
-            return {"status": "success", "payload": "Valid session token."}
-        else:
-            return {"status": "error", "payload": "Invalid session token."}
-        
-    if ac and ac == "check":
-        verify = await verify_session_token(token, jv)
-        if verify == True:
-            return {"status": "success", "payload": "Valid session token."}
-        else:
-            return {"status": "error", "payload": "Invalid session token."}
+    verify = await verify_session_token(token, jv)
+    
+    if verify['status'] == "success":
+        return {"status": "success", "payload": "Valid session token."}
+    else:
+        return {"status": "error", "payload": "Invalid session token."}

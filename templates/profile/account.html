@@ -33,11 +33,14 @@
 <body class="bg-[#2A3439] basic-font h-screen">
     <grid class="grid grid-cols-[theme(spacing.64)_1fr] grid-rows-[theme(spacing.24)_1fr] h-screen">
         <nav class="col-span-2 row-start-1 bg-[#191f22] border-b-2 border-orange-500">
-            <div class="flex flex-row items-center gap-2 p-4">
-                <img src="https://beta.shoshin.moe/static/shoshinlogo.png" alt="wuwa" class="w-44 h-auto"/>
+            <div class="flex flex-row items-center gap-2 p-4 mx-auto">
+                <svg id="mobileMenuButton" xmlns="http://www.w3.org/2000/svg" width="38" height="38" fill="orange" class="bi bi-list block md:hidden hover:cursor-pointer" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
+                </svg>
+                <img src="https://beta.shoshin.moe/static/shoshinlogo.png" alt="wuwa" class="w-44 h-auto ml-auto md:ml-4"/>
             </div>
         </nav>
-        <div class="bg-[#191f22] w-64 border-r-2 border-orange-500">
+        <div id="menuSidebar" class="bg-[#191f22] w-64 border-r-2 border-orange-500 absolute md:relative md:top-0 h-full z-20 overflow-auto -translate-x-full md:-translate-x-0 transition-transform duration-300">
             <div class="flex flex-row items-center p-4 gap-2 bg-orange-500 mb-4">
                 <img src="https://beta.shoshin.moe/static/default_avatar.png" alt="wuwa" class="w-8 h-auto rounded-full"/>
                 <p class="text-white text-md font-semibold truncate ...">{{ data['username'] }} ({{ data['uid'] }})</p>
@@ -119,76 +122,81 @@
                 </div>
             </div>
         </div>
-        <div id="_sho-mng-div-details" class="bg-[#191f22] overflow-y-scroll w-full">
+        <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-10"></div>
+        <div id="_sho-mng-div-details" class="bg-[#191f22] overflow-y-scroll w-screen md:w-full">
             <div class="flex flex-col gap-8 p-4 items-center justify-center">
-                <div class="flex flex-col gap-4 w-4/5">
+                <div class="flex flex-col gap-4 w-full md:w-4/5">
                     <h1 class="text-white font-bold text-4xl w-4/5 mt-8">Account Details</h1>
                     <div class="flex flex-row gap-2 items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="blue" class="bi bi-journal-bookmark" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M6 8V1h1v6.117L8.743 6.07a.5.5 0 0 1 .514 0L11 7.117V1h1v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8"/>
-                            <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
-                            <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                            <path fill-rule="evenodd" d="M6 8V1h1v6.117L8.743 6.07a.5.5 0 0 1 .514 0L11 7.117V1h1v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8"></path>
+                            <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"></path>
+                            <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"></path>
                         </svg>
-                        <p class="text-gray-300 font-normal text-md">Fields that contains this icon have to follow our <a href="https://beta.shoshin.moe/guidelines" class="text-blue-500 hover:underline hover:cursor-pointer hover:text-blue-400 underline-offset-2">Community Guidelines</a>.</p>
+                        <p class="text-gray-300 font-normal text-sm md:text-md">Fields that contains this icon have to follow our <a href="https://beta.shoshin.moe/guidelines" class="text-blue-500 hover:underline hover:cursor-pointer hover:text-blue-400 underline-offset-2">Community Guidelines</a>.</p>
                     </div>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="gap-4">
                         <div class="flex flex-col gap-2">
                             <div class="flex flex-row gap-2 items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="blue" class="bi bi-journal-bookmark" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M6 8V1h1v6.117L8.743 6.07a.5.5 0 0 1 .514 0L11 7.117V1h1v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8"/>
-                                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
-                                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                                    <path fill-rule="evenodd" d="M6 8V1h1v6.117L8.743 6.07a.5.5 0 0 1 .514 0L11 7.117V1h1v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8"></path>
+                                    <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"></path>
+                                    <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"></path>
                                 </svg>
                                 <p class="text-white font-medium text-2xl">Public Assets</p>
                             </div>
                             <p class="text-gray-300 font-normal text-md">Here are your public profile picture and banner image. These will be visible on your profile page by anyone who visits it.</p>
-                            <div class="flex flex-row gap-32 w-full">
+                            <div class="flex flex-col md:flex-row gap-2 md:gap-28 w-full items-center">
                                 <div>
-                                    <p class="text-white font-semibold text-lg mt-4 mb-3">Profile Picture</p>
-                                    <div class="bg-gray-500/30 p-4 rounded-md h-auto">
-                                        <div class="bg-gray-500/20 p-6 rounded-full relative group">
-                                            <img src='https:///beta.shoshin.moe/static/default_avatar.png' class="rounded-full hover:opacity-50 hover:cursor-pointer" style="width: 150px; height: 150px;">
-                                            <p class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-sm hidden group-hover:block select-none">Edit Picture</p>
+                                    <p class="text-white font-semibold text-lg mt-0 md:mt-4 mb-3">Profile Picture</p>
+                                    <div class="bg-gray-500/30 p-2 md:p-4 rounded-md w-auto">
+                                        <div class="bg-gray-500/20 p-2 md:p-6 rounded-full relative group">
+                                            <div class="h-full w-full flex items-center justify-center overflow-hidden">
+                                                <img src="https:///beta.shoshin.moe/static/default_avatar.png" class="rounded-full hover:opacity-50 hover:cursor-pointer">
+                                                <p class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-sm hidden group-hover:block select-none">Edit Picture</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <p class="text-white font-semibold text-lg mt-4 mb-3">Banner Image</p>
-                                    <div class="bg-gray-500/25 py-6 rounded-md relative group">
-                                        <img src='https:///beta.shoshin.moe/static/default_banner.png' class="w-full hover:opacity-50 hover:cursor-pointer" style="height: 182px;">
-                                        <p class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-sm hidden group-hover:block select-none">Edit Banner</p>
+                                    <p class="text-white font-semibold text-lg mt-0 md:mt-4 mb-3">Banner Image</p>
+                                    <div class="bg-gray-500/25 py-6 rounded-md relative group mb-4 w-full md:w-1/2">
+                                        <div class="flex items-center justify-center overflow-hidden">
+                                            <img src="https:///beta.shoshin.moe/static/default_banner.png" class="hover:opacity-50 hover:cursor-pointer">
+                                            <p class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-sm hidden group-hover:block select-none">Edit Banner</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-white font-medium text-2xl">Username</p>
                         </div>
                         <p class="text-gray-300 font-normal text-sm mb-4">Your public username is used to identify you on the platform. It is unique and cannot be changed due to security reasons.</p>
-                        <input disabled id="_sho-mng-username-field" type="text" class="w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['username'] }}" placeholder="Username"/>
+                        <input disabled="" id="_sho-mng-username-field" type="text" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="seizou" placeholder="Username">
                     </div>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="blue" class="bi bi-journal-bookmark" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M6 8V1h1v6.117L8.743 6.07a.5.5 0 0 1 .514 0L11 7.117V1h1v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8"/>
-                                <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
-                                <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+                                <path fill-rule="evenodd" d="M6 8V1h1v6.117L8.743 6.07a.5.5 0 0 1 .514 0L11 7.117V1h1v7a.5.5 0 0 1-.757.429L9 7.083 6.757 8.43A.5.5 0 0 1 6 8"></path>
+                                <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"></path>
+                                <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"></path>
                             </svg>
                             <p class="text-white font-medium text-2xl">Biography</p>
                         </div>
                         <p class="text-gray-300 font-normal text-sm mb-4">Tell us a little bit about yourself. This will be visible on your profile page.</p>
-                        <textarea id="_sho-mng-bio-field" rows="4" class="w-1/2 h-auto bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 resize-none" placeholder="Biography">{{ data['bio'] }}</textarea>
+                        <textarea id="_sho-mng-bio-field" rows="4" class="w-full md:w-1/2 h-auto bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 resize-none" placeholder="Biography">None</textarea>
                     </div>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-white font-medium text-2xl">In-Game UIDs</p>
@@ -199,30 +207,30 @@
                         <div class="flex flex-row gap-4 items-center">
                             <div class="flex flex-col gap-2">
                                 <p class="text-white font-semibold text-md">Wuthering Waves</p>
-                                <input disabled id="_sho-mng-uid-wuwa-field" type="text" class="w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['wuwa_uid'] }}" placeholder="In-Game UID">
+                                <input disabled="" id="_sho-mng-uid-wuwa-field" type="text" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="324987232" placeholder="In-Game UID">
                             </div>
                             <div class="flex flex-col gap-2">
                                 <p class="text-white font-semibold text-md">Zenless Zone Zero</p>
-                                <input disabled id="_sho-mng-uid-zzz-field" type="text" class="w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['zzz_uid'] if data['zzz_uid'] else 'ZZZ'}}" placeholder="In-Game UID">
+                                <input disabled="" id="_sho-mng-uid-zzz-field" type="text" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="ZZZ" placeholder="In-Game UID">
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div id="_sho-mng-div-security" class="bg-[#191f22] overflow-y-scroll w-full">
+        <div id="_sho-mng-div-security" class="bg-[#191f22] overflow-y-scroll w-screen md:w-full">
             <div class="flex flex-col gap-8 p-4 items-center justify-center">
-                <div class="flex flex-col gap-4 w-4/5">
+                <div class="flex flex-col gap-4 w-full md:w-4/5">
                     <h1 class="text-white font-bold text-4xl w-4/5 mt-8">Security & Privacy</h1>
                     <div class="flex flex-row gap-3 items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
                           <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
                           <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
                         </svg>
-                        <p class="text-gray-300 text-normal">Options marked with this symbol are critical edits, and will disconnect your account from all sessions.
+                        <p class="text-gray-300 text-sm md:text-md">Options marked with this symbol are critical edits, and will disconnect your account from all sessions.
                     </div>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
@@ -232,13 +240,13 @@
                             <p class="text-white font-medium text-2xl">E-mail Address</p>
                         </div>
                         <p class="text-gray-300 font-normal text-sm mb-4">This is the e-mail address connected to this account and used to log in.</p>
-                        <input disabled id="_sho-mng-email-field" type="email" class="w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['email'] }}" placeholder="Email Address"/>
+                        <input disabled id="_sho-mng-email-field" type="email" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['email'] }}" placeholder="Email Address"/>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-16 text-white text-md font-normal">
+                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-16 text-white text-md font-normal">
                     Edit your e-mail address
                     </button>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
@@ -248,13 +256,13 @@
                             <p class="text-white font-medium text-2xl">Password</p>
                         </div>
                         <p class="text-gray-300 font-normal text-sm mb-4">This is the password you use to log-in into your <a href="https://beta.shoshin.moe" class="text-orange-500 hover:cursor-pointer hover:underline underline-offset-4 decoration-orange-500">shoshin.moe</a> account.</p>
-                        <input disabled id="_sho-mng-password" type="password" class="w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['password'] }}" placeholder="Password"/>
+                        <input disabled id="_sho-mng-password" type="password" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['password'] }}" placeholder="Password"/>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-16 text-white text-md font-normal">
+                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-16 text-white text-md font-normal">
                     Edit Password
                     </button>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-white font-medium text-2xl">Two-Factor Authentication (2FA)</p>
@@ -262,7 +270,7 @@
                         <p class="text-gray-300 font-normal text-sm mb-4">
                           Two-Factor Authentication (2FA) is a secure method to verify that the person trying to log-in into the account<br>is actually the owner of it, by sending a mail to the E-mail Address associated with the account.
                           <p class="flex flex-row gap-3 items-center text-gray-300 text-sm">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-exclamation-circle w-32 md:w-auto" viewBox="0 0 16 16">
                                 <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
                                 <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
                               </svg>
@@ -270,7 +278,7 @@
                           </p>
                         </p>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-16 text-white text-md font-normal">
+                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-16 text-white text-md font-normal">
                     {% if data['mfa'] %}
                         Disable 2FA
                     {% else %}
@@ -278,14 +286,14 @@
                     {% endif %}
                     </button>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-row gap-2">
                         <div class="flex flex-col gap-2">
                             <p class="text-white font-medium text-2xl">Profile Visibility</p>
                             <p class="text-gray-300 font-normal text-sm">Set your profile visibility to either public or private. <br>Public profiles are visible to everyone, while private profiles are only visible to you and your friends.</p>
                         </div>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-8 text-white text-md font-normal">
+                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-8 text-white text-md font-normal">
                     {% if data['visibility'] %}
                         <p class="flex flex-row gap-3 items-center text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-lock" viewBox="0 0 16 16">
@@ -304,25 +312,25 @@
                     </button>
                 </div>
                 <hr class="h-px w-4/5 bg-gray-200 border-0 mx-4 mb-6 mt-6">
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-row gap-2">
                         <div class="flex flex-col gap-2">
                             <p class="text-white font-medium text-2xl">Delete Account</p>
                             <p class="text-gray-300 font-normal text-sm">This is a critical action and will delete your account permanently from our servers, along with<br> all the uploads you've made with it. This is irreversible and cannot be undone even by the administrators.</p>
                         </div>
                     </div>
-                    <button class="bg-red-500 hover:bg-red-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-8 text-white text-md font-normal">
+                    <button class="bg-red-500 hover:bg-red-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-8 text-white text-md font-normal">
                     Delete Account
                     </button>
                 </div>
             </div>
         </div>
-        <div id="_sho-mng-div-general" class="bg-[#191f22] overflow-y-scroll w-full">
+        <div id="_sho-mng-div-general" class="bg-[#191f22] overflow-y-scroll w-screen md:w-full">
             <div class="flex flex-col gap-8 p-4 items-center justify-center">
-                <div class="flex flex-col gap-4 w-4/5">
+                <div class="flex flex-col gap-4 w-full md:w-4/5">
                     <h1 class="text-white font-bold text-4xl w-4/5 mt-8">General Settings</h1>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-white font-medium text-2xl">Media Reposts</p>
@@ -341,11 +349,11 @@
                             <p class="{{ 'text-green-400' if data['reposts_allowed'] else 'text-red-400' }} font-normal text-md">{{ 'Reposts currently allowed.' if data['reposts_allowed'] else 'Reposts currently disabled.' }}</p>
                         </div>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-10 text-white text-md font-normal">
+                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-10 text-white text-md font-normal">
                     {{ 'Disable Reposts' if data['reposts_allowed'] else 'Enable Reposts' }}
                     </button>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-white font-medium text-2xl">Comments</p>
@@ -364,11 +372,11 @@
                             <p class="{{ 'text-green-400' if data['comments_allowed'] else 'text-red-400' }} font-normal text-md">{{ 'Comments currently allowed.' if data['comments_allowed'] else 'Comments currently disabled.' }}</p>
                         </div>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-10 text-white text-md font-normal">
+                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-10 text-white text-md font-normal">
                     {{ 'Disable Comments' if data['comments_allowed'] else 'Enable Comments' }}
                     </button>
                 </div>
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-white font-medium text-2xl">Post Mentions</p>
@@ -387,24 +395,24 @@
                             <p class="{{ 'text-green-400' if data['mentions_allowed'] else 'text-red-400' }} font-normal text-md">{{ 'Mentions currently allowed.' if data['mentions_allowed'] else 'Mentions currently disabled.' }}</p>
                         </div>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md absolute right-16 top-10 text-white text-md font-normal">
+                    <button class="bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md block md:absolute mt-4 md:mt-0 md:right-16 md:top-10 text-white text-md font-normal">
                     {{ 'Disable Mentions' if data['mentions_allowed'] else 'Enable Mentions' }}
                     </button>
                 </div>
                 <hr class="h-px w-4/5 bg-gray-200 border-0 mx-4 mb-6 mt-6">
-                <div class="border-orange-500 border w-4/5 p-4 gap-16 rounded-sm relative">
+                <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
                     <div class="flex flex-col gap-2">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-white font-medium text-2xl">Notifications</p>
                         </div>
                         <p class="text-gray-300 font-normal text-sm">Choose what you want to receive notifications for using the dropdown on the right.</p>
                     </div>
-                    <div class="absolute right-16 top-6 text-left">
+                    <div class="block md:absolute mt-4 md:mt-0 md:right-16 md:top-6 text-left">
                         <div>
                             <button type="button" class="inline-flex justify-center w-full bg-orange-500 hover:bg-orange-400 transition duration-300 hover:cursor-pointer h-auto p-3 rounded-md text-white text-md font-normal" id="menu-button" aria-expanded="true" aria-haspopup="true">
                             {{ 'All Notifications' if data['notifications_allowed'] == 0 else 'Only Mentions' }}
                             <!-- Heroicon name: solid/chevron-down -->
-                            <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <svg class="-mr-1 ml-2 h-5 w-32 md:w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
                             </button>
@@ -436,37 +444,508 @@
                 </div>
             </div>
         </div>
-        <div id="_sho-mng-div-achievements" class="bg-[#191f22] overflow-y-scroll w-full">
-            <div class="flex flex-col gap-8 p-4 items-center justify-center">
+        <div id="_sho-mng-div-achievements" class="bg-[#191f22] overflow-y-scroll w-screen md:w-full">
+            <div class="flex flex-col gap-8 p-0 md:p-4 items-center justify-center">
                 <div class="flex flex-col gap-4 w-4/5">
                     <h1 class="text-white font-bold text-4xl w-4/5 mt-8">Your Achievements</h1>
                     <p class="text-gray-300 font-normal text-sm">Here you can see all the achievements you've unlocked on the platform. Keep up the good work!</p>
                 </div>
                 <p class="text-white font-bold text-md underline underline-offset-4 decoration-4 decoration-white w-4/5">Achievements Unlocked</p>
-                <div class="bg-orange-500/50 border w-4/5 p-4 gap-16 rounded-md relative">
-                    <div class="grid grid-cols-3 md:grid-cols-5 gap-x-2 gap-y-6 p-2">
-                    {% for ach in achievements['owned'] %}
-                        <div class="flex flex-col gap-2 items-center">
-                            <img src="{{ ach['icon'] }}" class="w-32 h-auto">
-                            <p class="text-white font-medium text-2xl">{{ ach['name'] }}</p>
-                            <p class="text-gray-300 font-normal text-sm">{{ ach['description'] }}</p>
-                            <p class="text-white font-bold text-xs">Unlocked at {{ ach['time'] | datetime }}</p>
+                <div class="w-4/5 gap-16 rounded-md relative">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-x-2 gap-y-6">
+                        {% for ach in achievements['owned'] %}
+                        <div class="relative flex flex-col items-center bg-green-900 p-4 rounded-md">
+                            <p class="text-white font-medium text-2xl mb-4">{{ ach['name'] }}</p>
+                            <hr class="border-2 rounded-full glow absolute top-9 md:top-10 translate-y-1/2 w-[90px] h-[90px]">
+                            <img src="{{ ach['icon'] }}" class="w-32 h-auto z-10 border-2 rounded-full">
+                            <div class="flex flex-col gap-2 mt-4">
+                              <p class="text-gray-300 font-normal text-sm text-center">{{ ach['description'] }}</p>
+                              <p class="text-white font-bold text-xs text-center">Unlocked at {{ ach['time'] | datetime }}</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-bookmark-check-fill absolute right-2 top-0 text-white" viewBox="0 0 16 16">
+                              <path fill-rule="evenodd" d="M2 15.5V2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.74.439L8 13.069l-5.26 2.87A.5.5 0 0 1 2 15.5m8.854-9.646a.5.5 0 0 0-.708-.708L7.5 7.793 6.354 6.646a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0z"/>
+                            </svg>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
                     </div>
                 </div>
                 <hr class="h-px w-4/5 bg-gray-200 border-0 mx-4 mb-6 mt-6">
                 <p class="text-white font-bold text-md underline underline-offset-4 decoration-4 decoration-white w-4/5">Achievements Locked</p>
-                <div class="bg-orange-500/50 border w-4/5 p-4 gap-16 rounded-md relative">
-                    <div class="grid grid-cols-3 md:grid-cols-5 gap-x-2 gap-y-6 p-2">
-                    {% for ach in achievements['not_owned'] %}
-                        <div class="flex flex-col gap-1 items-center">
-                            <img src="{{ ach['icon'] }}" class="w-32 h-auto blur-sm">
-                            <p class="text-white font-medium text-2xl">{{ ach['name'] }}</p>
-                            <p class="text-gray-300 font-normal text-sm text-center">{{ ach['description'] }}</p>
+                <div class="w-4/5 gap-16 rounded-md relative">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-x-2 gap-y-6">
+                        {% for ach in achievements['not_owned'] %}
+                        <div class="relative flex flex-col items-center bg-red-900 p-4 rounded-md">
+                            <p class="text-white font-medium text-2xl mb-4">{{ ach['name'] }}</p>
+                            <div class="relative">
+                                <div class="blur-sm">
+                                    <img src="{{ ach['icon'] }}" class="w-32 h-auto z-10 border-2 rounded-full">
+                                    <hr class="bg-black/35 rounded-full absolute inset-0 h-full">
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="gray" class="bi bi-lock-fill absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" viewBox="0 0 16 16">
+                                    <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2m3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2"/>
+                                </svg>
+                            </div>
+                            <div class="flex flex-col gap-2 mt-4">
+                              <p class="text-gray-300 font-normal text-sm text-center">{{ ach['description'] }}</p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-bookmark-x-fill absolute right-2 top-0 text-white" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M2 15.5V2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.74.439L8 13.069l-5.26 2.87A.5.5 0 0 1 2 15.5M6.854 5.146a.5.5 0 1 0-.708.708L7.293 7 6.146 8.146a.5.5 0 1 0 .708.708L8 7.707l1.146 1.147a.5.5 0 1 0 .708-.708L8.707 7l1.147-1.146a.5.5 0 0 0-.708-.708L8 6.293z"/>
+                              </svg>
                         </div>
-                    {% endfor %}
+                        {% endfor %}
                     </div>
+                </div>
+            </div>
+        </div>
+        <div id="_sho-mng-div-appearance" class="bg-[#191f22] overflow-y-scroll w-screen md:w-full">
+            <div class="flex flex-col gap-8 p-0 md:p-4 items-center justify-center">
+                <div class="flex flex-col gap-4 w-4/5">
+                    <img src="https://beta.shoshin.moe/static/adbanner.png" class="w-full h-full object-cover rounded-sm">
+                    <h1 class="text-white font-bold text-4xl w-4/5 mt-8">Appearance</h1>
+                    <p class="text-gray-300 font-normal text-sm">Here you can customize the appearance of your profile page to your liking. Shine as bright as you want!</p>
+                </div>
+    
+                <!-- Color Scheme Selector -->
+                <div class="flex flex-col gap-4 w-4/5">
+                    <h2 class="text-white font-bold text-2xl">Color Scheme</h2>
+                    <div class="flex gap-4 flex-wrap">
+                        <!-- Solid Colors -->
+                        <div class="relative group">
+                            <button class="bg-red-500 w-16 h-16 rounded-full" data-color="bg-red-500"></button>
+                            <div class="absolute left-1/2 transform -translate-x-1/2 bottom-20 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Crimson Red</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-green-500 w-16 h-16 rounded-full" data-color="bg-green-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Forest Green</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-blue-500 w-16 h-16 rounded-full" data-color="bg-blue-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Ocean Blue</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-yellow-500 w-16 h-16 rounded-full" data-color="bg-yellow-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Sunny Yellow</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-purple-500 w-16 h-16 rounded-full" data-color="bg-purple-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Royal Purple</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-pink-500 w-16 h-16 rounded-full" data-color="bg-pink-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Blush Pink</p>
+                            </div>
+                        </div>
+    
+                        <!-- Gradient Colors -->
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-green-400 to-blue-500 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-green-400 to-blue-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Emerald Bay</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-pink-500 to-orange-500 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-pink-500 to-orange-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Sunset Glow</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-purple-500 to-pink-500 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-purple-500 to-pink-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Lavender Blush</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-yellow-500 to-red-500 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-yellow-500 to-red-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Sunset Flame</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-blue-500 to-purple-600 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-blue-500 to-purple-600"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Twilight</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-teal-400 to-blue-500 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-teal-400 to-blue-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Ocean Wave</p>
+                            </div>
+                        </div>
+                        
+                        <!-- More Colors -->
+                        <div class="relative group">
+                            <button class="bg-indigo-500 w-16 h-16 rounded-full" data-color="bg-indigo-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Indigo Night</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gray-500 w-16 h-16 rounded-full" data-color="bg-gray-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Slate Gray</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-orange-500 w-16 h-16 rounded-full" data-color="bg-orange-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Tangerine</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-red-500 to-yellow-500 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-red-500 to-yellow-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Firestorm</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-indigo-500 to-purple-500 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-indigo-500 to-purple-500"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Mystic Night</p>
+                            </div>
+                        </div>
+                        <div class="relative group">
+                            <button class="bg-gradient-to-r from-green-300 to-green-700 w-16 h-16 rounded-full" data-color="bg-gradient-to-r from-green-300 to-green-700"></button>
+                            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p class="bg-black text-white text-sm rounded py-2 px-4 whitespace-nowrap pop-glow">Forest Breeze</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Font Customization -->
+                <div class="flex flex-col gap-4 w-4/5">
+                    <h2 class="text-white font-bold text-2xl">Font Style</h2>
+                    <div class="relative inline-block w-full text-gray-300">
+                        <button id="custom-select-button" class="bg-[#1f2b30] p-4 rounded-md w-full text-left">
+                            Select a font
+                        </button>
+                        <ul id="custom-select-options" class="hidden absolute bg-[#1f2b30] mt-2 rounded-md shadow-lg z-10 w-full">
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: Arial;">
+                                <span>Arial</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: Verdana;">
+                                <span>Verdana</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: Tahoma;">
+                                <span>Tahoma</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: Georgia;">
+                                <span>Georgia</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Times New Roman';">
+                                <span>Times New Roman</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Courier New';">
+                                <span>Courier New</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Trebuchet MS';">
+                                <span>Trebuchet MS</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Comic Sans MS';">
+                                <span>Comic Sans MS</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: Impact;">
+                                <span>Impact</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Lucida Console';">
+                                <span>Lucida Console</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: Garamond;">
+                                <span>Garamond</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Palatino Linotype';">
+                                <span>Palatino Linotype</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Arial Black';">
+                                <span>Arial Black</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Gill Sans';">
+                                <span>Gill Sans</span>
+                            </li>
+                            <li class="p-2 hover:bg-gray-700 cursor-pointer flex flex-col gap-1" style="font-family: 'Century Gothic';">
+                                <span>Century Gothic</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+    
+                <!-- Background Options -->
+                <div class="flex flex-col gap-1 w-4/5">
+                    <h2 class="text-white font-bold text-2xl">Background</h2>
+                    <p class="text-gray-300 font-normal text-sm">Choose a background image for your profile page to make it stand out!</p>
+                    <div class="relative inline-block w-full items-center">
+                        <button id="backgroundProfileSelector" class="bg-[#1f2b30] p-4 rounded-md w-full text-left text-gray-300 mt-2">Select Background</button>
+                        <svg id="backgroundMenuArrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-chevron-down absolute right-4 top-7 transition-transform duration-300" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                        </svg>
+                        <div id="backgroundProfileOptions" class="hidden absolute bg-[#1f2b30] mt-2 rounded-md shadow-lg z-10 w-full left-0 overflow-auto">
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 p-2">
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Cosmic View</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/cosmic_view.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Nature Feelings</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/nature_feelings.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Anime Vibes</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/anime_vibes.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Cyberpunk Theme</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/cyberpunk_theme.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Minimal Design</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/minimal_design.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Dragon's Tavern</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/dragons_tavern.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Zoee's Day</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/zoees_day.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Ethereal World</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/ethereal_world.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Architectural Design</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/architectural_design.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1 p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <h1 class="text-white font-bold text-2xl">Retro Vibes</h1>
+                                    <div class="bg-gray-500 rounded-md w-full h-44 mt-2 relative" style="background-image: url(../static/profilebg/retro_vibes.png); background-size:cover; background-repeat: no-repeat;">
+                                        <div class="flex flex-row items-center gap-1 absolute bottom-1 left-1 bg-black/40 px-2 py-1 rounded-full">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lime" class="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                                                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708"/>
+                                            </svg>
+                                            <p class="text-gray-300 font-normal text-sm">Made by Shoshin.moe</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Avatar Effects -->
+                <div class="flex flex-col gap-1 w-4/5">
+                    <h2 class="text-white font-bold text-2xl">Avatar Effects</h2>
+                    <p class="text-gray-300 font-normal text-sm">Choose any avatar effect to apply to your profile picture!</p>
+                    <div class="relative inline-block w-full items-center">
+                        <button id="effectsProfileSelector" class="bg-[#1f2b30] p-4 rounded-md w-full text-left text-gray-300 mt-2">Select Effect</button>
+                        <svg id="effectsMenuArrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" class="bi bi-chevron-down absolute right-4 top-7 transition-transform duration-300" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                        </svg>
+                        <div id="effectsProfileOptions" class="hidden absolute bg-[#1f2b30] mt-2 rounded-md shadow-lg z-10 w-full left-0 overflow-auto">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 p-2">
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/fire.gif" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                    <h1 class="text-white font-semibold text-xl text-center p-2">Flame Time</h1>
+                                    <p class="text-gray-300 text-sm font-normal text-center">Copyright ® <a href="https://pinterest.com/pin/765612005406204474/" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">xxlovesimpxx</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/fireworks.gif" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                    <h1 class="text-white font-semibold text-xl text-center p-2">Fireworks</h1>
+                                    <p class="text-gray-300 text-sm font-normal text-center">(No) Copyright ® <a href="https://cliply.co/clip/free-fireworks/" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">cliply.co</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/sparkles.gif" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                    <h1 class="text-white font-semibold text-xl text-center p-2">Cloudy</h1>
+                                    <p class="text-gray-300 text-sm font-normal text-center">(No) Copyright ® <a href="https://gifer.com/en/YYdf" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">gifer.com</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/cloudy.png" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                    <h1 class="text-white font-semibold text-xl text-center p-2">Cloudy</h1>
+                                    <p class="text-gray-300 text-sm font-normal text-center">Copyright ® <a href="https://shoshin.moe/" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">Shoshin.moe</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/flawness.gif" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                        <h1 class="text-white font-semibold text-xl text-center p-2">Flawness</h1>
+                                        <p class="text-gray-300 text-sm font-normal text-center">Copyright ® <a href="https://en.picmix.com/stamp/effect-effet-effekt-overlay-deco-abstract-gif-anime-animated-animation-circle-green-1566276" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">Nightmare71</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/fireball.gif" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                        <h1 class="text-white font-semibold text-xl text-center p-2">Fireball</h1>
+                                        <p class="text-gray-300 text-sm font-normal text-center">Copyright ® <a href="https://kusunoki7100.tumblr.com/post/153521531539/spencerwan-i-finally-got-around-to-making-gifs-of" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">kusunoki7100</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/animated.png" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                        <h1 class="text-white font-semibold text-xl text-center p-2">Moonlight</h1>
+                                        <p class="text-gray-300 text-sm font-normal text-center">Copyright ® <a href="https://shoshin.moe" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">Shoshin.moe</a></p>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col p-2 hover:bg-gray-500/30 rounded-md hover:cursor-pointer">
+                                    <div class="bg-gray-900/90 rounded-t-md w-full h-56 mt-2 relative">
+                                        <div class="absolute inset-0 m-auto w-36 h-36 flex items-center justify-center">
+                                            <div class="relative w-32 h-32 flex items-center justify-center">
+                                                <img src="https://beta.shoshin.moe/static/default_avatar.png" class="w-full h-full object-cover rounded-full">
+                                            </div>
+                                            <img src="https://beta.shoshin.moe/static/avatareffects/neon.png" class="absolute inset-0 w-36 h-36 object-cover rounded-full">
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-600/50 h-20 rounded-b-md">
+                                        <h1 class="text-white font-semibold text-xl text-center p-2">Neon Circle</h1>
+                                        <p class="text-gray-300 text-sm font-normal text-center">Copyright ® <a href="https://shoshin.moe" class="text-blue-500 hover:text-blue-400 hover:underline underline-offset-2">Shoshin.moe</a></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- Custom CSS -->
+                <div class="flex flex-col gap-4 w-4/5">
+                    <h2 class="text-white font-bold text-2xl">Custom CSS</h2>
+                    <textarea class="text-gray-300 bg-[#1f2b30] p-2 rounded-md" rows="4" placeholder="Enter custom CSS..."></textarea>
+                </div>
+    
+                <!-- Preview Mode -->
+                <div class="flex flex-col gap-4 w-4/5">
+                    <h2 class="text-white font-bold text-2xl">Preview Mode</h2>
+                    <button class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md">Preview Changes</button>
                 </div>
             </div>
         </div>

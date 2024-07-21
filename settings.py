@@ -37,3 +37,12 @@ RECAPTCHA_TOKEN = os.getenv("RECAPTCHA_TOKEN")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+
+URLS = {
+    '_px': 'https://beta.shoshin.moe/captcha/google/recaptcha/verify',
+    '_pl': 'https://beta.shoshin.moe/auth/verify',
+    '_pvc': 'https://beta.shoshin.moe/auth/verify/code',
+    '_pe': 'https://beta.shoshin.moe/api/env',
+    '_pv': 'https://beta.shoshin.moe/auth/verify/session',
+    '_ck': 'https://beta.shoshin.moe/ck/'
+}

@@ -34,16 +34,16 @@ export class _Log1 {
     _(code, context = {}) {
         const error = this.___(code);
         const timestamp = new Date().toISOString();
-        const logMethods = {
+        const l = {
             "INFO": "info",
             "WARNING": "warn",
             "ERROR": "error",
-            "CRITICAL": "error"  // you can map "CRITICAL" to "error" or any other method you prefer
+            "CRITICAL": "error"
         };
 
-        const logMethod = logMethods[error.severity.toUpperCase()] || "log";
+        const lM = l[error.severity.toUpperCase()] || "log";
 
-        console[logMethod](
+        console[lM](
             `[${timestamp}] ${error.severity} ${code}: ${error.message}`,
             { category: error.category, ...context, ...error.metadata }
         );
