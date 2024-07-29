@@ -26,7 +26,7 @@ packlage-lock.json
 
 # CSS
 *.css.map
-*.css~
+*.css
 
 # Environment files
 .env
@@ -83,5 +83,4 @@ packlage-lock.json
 *.bak
 *.old
 *.backup
-*.~*
 *.sock

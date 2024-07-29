@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         styleTag.id = 'custom-css-style';
 
         // Wrap user-provided CSS in a scoped CSS block
-        styleTag.textContent = `#${previewAreaId} { ${customCSS} }`;
+        styleTag.textContent = #${previewAreaId} { ${customCSS} };
 
         // Append the new style tag to the head
         document.head.appendChild(styleTag);
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedColor = localStorage.getItem('selectedColor');
         if (selectedColor) {
             // Add the selected color class
-            document.getElementById("shoshin-profile").className = `flex flex-col gap-4 border-green-400 border-2 rounded-md w-full md:w-1/2 mx-auto pb-4 ${selectedColor}`; 
+            document.getElementById("shoshin-profile").className = `flex flex-col gap-4 border-green-400 border-2 rounded-md w-full md:w-1/2 mx-auto pb-4 ${selectedColor};`
         }
     });
 });
