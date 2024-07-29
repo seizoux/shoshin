@@ -48,27 +48,79 @@ document.addEventListener('DOMContentLoaded', function() {
     setupToggle('effectsProfileSelector', 'effectsProfileOptions', 'effectsMenuArrow', 'selectedAvatarEffect');
 
     // Friends Handling
-    const friendsButton = document.getElementById('_sho-sendFriendRequest-button');
+    const addFriendsButton = document.getElementById('_sho-sendFriendRequest-button');
+
+    const friendList = document.getElementById('_sho-currentFriendsButton');
+    const friendRequestsList = document.getElementById('_sho-requestInOutButton');
+    const blockedFriendsList = document.getElementById('_sho-blockedFriendsButton');
+
+    // Fetch the user's friends list
+    async function fetchFriendsList() {
+        let uidCookie = await getCookie('_sho-session');
+        fetch('/api/friends/' + uidCookie.raw.token, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 'token': uidCookie.raw.token })
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Failed to fetch friends list');
+        }).then(data => {
+            // Log the response data for debugging
+            _._(1, { data: data }, 'friends');
+        }).catch(error => {
+            console.error(error);
+        });
+    };
+
+    async function fetchFriendRequests() {
+        let uidCookie = await getCookie('_sho-session');
+        fetch('/api/friends/requests/in-out', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 'token': uidCookie.raw.token })
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Failed to fetch friend requests');
+        }).then(data => {
+            // Log the response data for debugging
+            _._(1, { data: data }, 'friends');
+        }).catch(error => {
+            console.error(error);
+        });
+    };
+
+    friendList.addEventListener('click', function() {
+        fetchFriendsList();
+    });
+
+    friendRequestsList.addEventListener('click', function() {
+        fetchFriendRequests();
+    });
+
     const popup = document.getElementById('shoshin-friends-popup');
-    const friendSearch = document.getElementById('_sho-friendSearchInput');
+    const addFriendSearch = document.getElementById('_sho-friendSearchInput');
 
     // Toggle popup visibility when the button is clicked
-    friendsButton.addEventListener('click', function() {
+    addFriendsButton.addEventListener('click', function() {
         popup.classList.toggle('hidden');
     });
 
     // Hide popup when clicking outside of it
     document.addEventListener('click', function(event) {
-        if (!popup.contains(event.target) && event.target !== friendsButton) {
+        if (!popup.contains(event.target) && event.target !== addFriendsButton) {
             popup.classList.add('hidden');
         }
     });
 
     // Search functionality, used to search for new friends and add them
-    friendSearch.addEventListener('keyup', async function(event) {
+    addFriendSearch.addEventListener('keyup', async function(event) {
         // Check if the key pressed is "ENTER"
         if (event.key === 'Enter') {
-            const searchQuery = friendSearch.value.trim(); // Keep the value as a string
+            const searchQuery = addFriendSearch.value.trim(); // Keep the value as a string
             let uidCookie = await getCookie('_sho-session');
 
             console.log('Search Query:', searchQuery); // Log the search query for debugging

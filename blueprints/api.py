@@ -1,3 +1,4 @@
+import datetime
 from quart import Blueprint, current_app
 from quart import request, jsonify
 import settings as _WebSettings
@@ -120,18 +121,40 @@ async def send_friend_request():
 @requires_valid_origin
 async def handle_friend_request():
     data = await request.json
-    user_id = data['user_id']
+    token = data['token']
     friend_id = data['friend_id']
     action = data['action']
 
-    user = await current_app.pool.fetchrow('SELECT friends FROM users WHERE id=$1', user_id)
+    # Verify the session token
+    data = await verify_session_token(token, False)
+    if data['status'] == "error":
+        if data['message'] == "Invalid session token.":
+            return jsonify({'status': 'error', 'payload': 'Invalid session token'})
+        return jsonify({'status': 'error', 'payload': 'User not found'})
+
+    user = data['payload']
     friend = await current_app.pool.fetchrow('SELECT friends FROM users WHERE id=$1', friend_id)
 
     if not user or not friend:
         return jsonify({'status': 'error', 'payload': 'User not found'})
 
-    user_friends = json.loads(user['friends'])
-    friend_friends = json.loads(friend['friends'])
+    if not friend_friends:
+        friend_friends = {
+            'accepted': [],
+            'requests': [],
+            'blocked': []
+        }
+    else:
+        friend_friends = json.loads(friend['friends'])
+
+    if not user_friends:
+        user_friends = {
+            'accepted': [],
+            'requests': [],
+            'blocked': []
+        }
+    else:
+        user_friends = json.loads(user['friends'])
 
     if 'requests' not in user_friends or friend_id not in user_friends['requests']:
         return jsonify({'status': 'error', 'payload': 'No friend request found'})
@@ -139,26 +162,92 @@ async def handle_friend_request():
     user_friends['requests'].remove(friend_id)
 
     if action == 'accept':
-        user_friends.append(friend_id)
-        friend_friends.append(user_id)
+        user_friends['accepted'].append({'uid': friend_id, 'friends_since': datetime.datetime.now()})
+        friend_friends['accepted'].append({'uid': user['uid'], 'friends_since': datetime.datetime.now()})
         await current_app.pool.execute('UPDATE users SET friends=$1 WHERE id=$2', json.dumps(friend_friends), friend_id)
 
-    await current_app.pool.execute('UPDATE users SET friends=$1 WHERE id=$2', json.dumps(user_friends), user_id)
+    await current_app.pool.execute('UPDATE users SET friends=$1 WHERE id=$2', json.dumps(user_friends), user['uid'])
 
     return jsonify({'status': 'success', 'payload': f'Friend request {action}ed'}), 200
 
-@api_bp.route('/friends/<int:user_id>', methods=['GET'])
+@api_bp.route('/friends/<token>', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
-async def friends_list(user_id):
-    user = await current_app.pool.fetchrow('SELECT friends FROM users WHERE id=$1', user_id)
+async def friends_list(token):
+    # Verify the session token
+    data = await verify_session_token(token, False)
+    if data['status'] == "error":
+        if data['message'] == "Invalid session token.":
+            return jsonify({'status': 'error', 'payload': 'Invalid session token'})
+        return jsonify({'status': 'error', 'payload': 'User not found'})
+
+    user = data['payload']
 
     if not user:
         return jsonify({'status': 'error', 'payload': 'User not found'})
 
+    if not user.get('friends'):
+        return jsonify({'status': 'error', 'payload': 'No friends found'})
+    
     friends = json.loads(user['friends'])
 
-    return jsonify({'friends': friends['accepted'], 'requests': friends['requests'], 'blocked': friends['blocked']}), 200
+    friends_data = []
+    for friend_id in friends['accepted']:
+        friend = await current_app.pool.fetchrow('SELECT * FROM users WHERE uid=$1', friend_id)
+        friends_data.append({
+            'uid': str(friend['uid']),
+            'username': friend['username'],
+            'avatar': friend['avatar'],
+            'bio': friend['bio']
+        })
+
+    return jsonify({'status': 'success', 'payload': friends_data}), 200
+
+@api_bp.route('/friends/requests/in-out', methods=['POST'])
+@route_cors(allow_origin="https://beta.shoshin.moe")
+@requires_valid_origin
+async def friends_requests():
+    data = await request.json
+    token = data['token']
+
+    # Verify the session token
+    data = await verify_session_token(token, False)
+    if data['status'] == "error":
+        if data['message'] == "Invalid session token.":
+            return jsonify({'status': 'error', 'payload': 'Invalid session token'})
+        return jsonify({'status': 'error', 'payload': 'User not found'})
+
+    user = data['payload']
+
+    if user.get('friends'):
+        friends = json.loads(user['friends'])
+
+        requests = friends['requests']
+        _in = []
+        for uid in requests:
+            friend = await current_app.pool.fetchrow('SELECT * FROM users WHERE uid=$1', uid)
+            _in.append({
+                'uid': friend['uid'],
+                'username': friend['username'],
+                'avatar': friend['avatar'],
+                'bio': friend['bio']
+            })
+
+        _out = []
+        all_users = await current_app.pool.fetch('SELECT * FROM users')
+        for u in all_users:
+            if u.get('friends'):
+                _friends = json.loads(u['friends'])
+                if user['uid'] in _friends['requests']:
+                    _out.append({
+                        'uid': str(user['uid']),
+                        'username': u['username'],
+                        'avatar': u['avatar'],
+                        'bio': u['bio']
+                    })
+
+        return jsonify({'status': 'success', 'payload': {'in': _in, 'out': _out}}), 200
+    return jsonify({'status': 'error', 'payload': 'No friend requests found'}), 200
 
 @api_bp.route('/env', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
