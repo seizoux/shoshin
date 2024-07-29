@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyStoredColor() {
         const storedColor = localStorage.getItem('selectedColor');
         if (storedColor) {
-            const button = document.querySelector([data-color="${storedColor}"]);
+            const button = document.querySelector(`[data-color="${storedColor}"]`);
             if (button) {
                 button.classList.add('outline-none', 'outline-offset-2', 'outline-orange-500');
                 button.querySelector('div').classList.remove('hidden');

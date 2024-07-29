@@ -11,7 +11,17 @@
                     <p class="text-gray-300 font-medium text-lg hover:bg-gray-700/30 rounded-md px-2 py-1 hover:cursor-pointer">My Friends</p>
                     <p class="text-gray-300 font-medium text-lg hover:bg-gray-700/30 rounded-md px-2 py-1 hover:cursor-pointer">Requests</p>
                     <p class="text-gray-300 font-medium text-lg hover:bg-gray-700/30 rounded-md px-2 py-1 hover:cursor-pointer">Blocked</p>
-                    <p class="text-white font-medium text-lg bg-green-600 px-2 py-1 rounded-md transition duration-150 ease-out hover:bg-green-500 hover:cursor-pointer">Send Friend Request</p>
+                    <p id="_sho-sendFriendRequest-button" class="text-white font-medium text-lg bg-green-600 px-2 py-1 rounded-md transition duration-150 ease-out hover:bg-green-500 hover:cursor-pointer">Send Friend Request</p>
+                    <div id="shoshin-friends-popup" class="absolute inset-0 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 h-auto z-10 bg-white/10 backdrop-blur-sm w-1/2">
+                        <div class="h-12 bg-[#191f22] m-4 rounded-md relative">
+                            <div class="flex flex-row items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white" class="bi bi-search ml-4 translate-y-1/2" viewBox="0 0 16 16">
+                                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                </svg>
+                                <input id="_sho-friendSearchInput" class="text-white font-semibold ml-4 w-full bg-transparent translate-y-1/2 border-none outline-none" placeholder="Paste their UID here or search by Username!"/>
+                            </div>
+                        </div> 
+                    </div>
                 </div>
             </div>
             <div class="bg-[#14181b] h-full relative rounded-b-md">

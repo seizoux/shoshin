@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         styleTag.id = 'custom-css-style';
 
         // Wrap user-provided CSS in a scoped CSS block
-        styleTag.textContent = #${previewAreaId} { ${customCSS} };
+        styleTag.textContent = `#${previewAreaId} { ${customCSS} }`;
 
         // Append the new style tag to the head
         document.head.appendChild(styleTag);
