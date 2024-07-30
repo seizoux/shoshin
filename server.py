@@ -180,7 +180,18 @@ async def view_profile():
 
             _un = fetch_achievements([json.loads(ach) for ach in data['payload']['achievements']])
 
-            return await render_template("profile/account.html", data=data['payload'], achievements=_un)
+            _fr = []
+
+            if data['payload']['friends']:
+                _f = json.loads(data['payload']['friends'])
+                if len(_f['accepted']) > 0:
+                    for uid in _f['accepted']:
+                        friend_data = await app.pool.fetchrow("SELECT * FROM users WHERE uid = $1", uid)
+                        _fr.append(friend_data)
+
+            print(_fr)
+
+            return await render_template("profile/account.html", data=data['payload'], achievements=_un, friends=_fr)
         except Exception as e:
             log.error(e)
             return redirect(url_for('login'))
