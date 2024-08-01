@@ -1,63 +1,33 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize CodeMirror on the textarea
-    const editor = CodeMirror.fromTextArea(document.getElementById('custom-css-input'), {
-        mode: 'css',
-        theme: 'dracula',
-        lineNumbers: true,
-        lineWrapping: true,
-        extraKeys: {
-            'Tab': function(cm) {
-                cm.replaceSelection('    ', 'end');
-            },
-            'Ctrl-Space': 'autocomplete'
-        }
-    });
+/*
+ * ATTENTION: An "eval-source-map" devtool has been used.
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file with attached SourceMaps in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
 
-    // Set the initial height to 10 rows
-    editor.setSize(null, '20em');
+/***/ "./static/ts/data/_preview.ts":
+/*!************************************!*\
+  !*** ./static/ts/data/_preview.ts ***!
+  \************************************/
+/***/ (() => {
 
-    document.getElementById('preview-changes-button').addEventListener('click', function() {
-        const customCSS = editor.getValue();
-        const previewAreaId = 'preview-area';
+eval("\ndocument.addEventListener('DOMContentLoaded', function () {\n    // Initialize CodeMirror on the textarea\n    var textArea = document.getElementById('custom-css-input');\n    var editor = CodeMirror.fromTextArea(textArea, {\n        mode: 'css',\n        theme: 'dracula',\n        lineNumbers: true,\n        lineWrapping: true,\n        extraKeys: {\n            'Tab': function (cm) {\n                cm.replaceSelection('    ', 'end');\n            },\n            'Ctrl-Space': 'autocomplete'\n        }\n    });\n    // Set the initial height to 20em\n    editor.setSize(null, '20em');\n    var previewButton = document.getElementById('preview-changes-button');\n    previewButton.addEventListener('click', function () {\n        var customCSS = editor.getValue();\n        var previewAreaId = 'preview-area';\n        // Remove any previous custom styles\n        var oldStyleTag = document.getElementById('custom-css-style');\n        if (oldStyleTag) {\n            oldStyleTag.remove();\n        }\n        // Create a new style tag with the custom CSS\n        var styleTag = document.createElement('style');\n        styleTag.id = 'custom-css-style';\n        // Wrap user-provided CSS in a scoped CSS block\n        styleTag.textContent = \"#\".concat(previewAreaId, \" { \").concat(customCSS, \" }\");\n        // Append the new style tag to the head\n        document.head.appendChild(styleTag);\n        // Apply selected background from localStorage\n        var backgroundData = JSON.parse(localStorage.getItem('selectedBackground') || '{}');\n        if (backgroundData && backgroundData.backgroundImage) {\n            var previewArea = document.getElementById(previewAreaId);\n            previewArea.style.backgroundImage = backgroundData.backgroundImage;\n            previewArea.style.backgroundSize = 'cover';\n        }\n        // Apply selected avatar effect from localStorage\n        var avatarEffectData = JSON.parse(localStorage.getItem('selectedAvatarEffect') || '{}');\n        if (avatarEffectData && avatarEffectData.avatarEffect) {\n            var avatarEffectImg = document.getElementById('avatar-effect');\n            if (avatarEffectImg) {\n                avatarEffectImg.src = avatarEffectData.avatarEffect;\n                avatarEffectImg.style.display = 'block';\n            }\n        }\n        // Apply selected color from localStorage\n        var selectedColor = localStorage.getItem('selectedColor');\n        if (selectedColor) {\n            var profileElement = document.getElementById(\"shoshin-profile\");\n            if (profileElement) {\n                profileElement.className = \"flex flex-col gap-4 border-green-400 border-2 rounded-md w-full md:w-1/2 mx-auto pb-4 \".concat(selectedColor);\n            }\n        }\n    });\n});\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,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Q0FBQyxlQUFlLENBQUMsQ0FBQztRQUM1RCxJQUFJLGFBQWEsRUFBRSxDQUFDO1lBQ2hCLElBQU0sY0FBYyxHQUFHLFFBQVEsQ0FBQyxjQUFjLENBQUMsaUJBQWlCLENBQWdCLENBQUM7WUFDakYsSUFBSSxjQUFjLEVBQUUsQ0FBQztnQkFDakIsY0FBYyxDQUFDLFNBQVMsR0FBRyxnR0FBeUYsYUFBYSxDQUFFLENBQUM7WUFDeEksQ0FBQztRQUNMLENBQUM7SUFDTCxDQUFDLENBQUMsQ0FBQztBQUNQLENBQUMsQ0FBQyxDQUFDIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vc2hvc2hpbi1iZXRhLy4vc3RhdGljL3RzL2RhdGEvX3ByZXZpZXcudHM/ZDZmZCJdLCJzb3VyY2VzQ29udGVudCI6WyJkZWNsYXJlIHZhciBDb2RlTWlycm9yOiB7XG4gICAgZnJvbVRleHRBcmVhOiAodGV4dEFyZWE6IEhUTUxUZXh0QXJlYUVsZW1lbnQsIG9wdGlvbnM6IGFueSkgPT4gQ29kZU1pcnJvckVkaXRvcjtcbn07XG5cbmludGVyZmFjZSBDb2RlTWlycm9yRWRpdG9yIHtcbiAgICBnZXRWYWx1ZTogKCkgPT4gc3RyaW5nO1xuICAgIHNldFZhbHVlOiAodmFsdWU6IHN0cmluZykgPT4gdm9pZDtcbiAgICBzZXRTaXplOiAod2lkdGg6IHN0cmluZyB8IG51bWJlciB8IG51bGwsIGhlaWdodDogc3RyaW5nIHwgbnVtYmVyIHwgbnVsbCkgPT4gdm9pZDtcbiAgICByZXBsYWNlU2VsZWN0aW9uOiAodGV4dDogc3RyaW5nLCBzZWxlY3Q6IHN0cmluZykgPT4gdm9pZDtcbn1cblxuZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKCkge1xuICAgIC8vIEluaXRpYWxpemUgQ29kZU1pcnJvciBvbiB0aGUgdGV4dGFyZWFcbiAgICBjb25zdCB0ZXh0QXJlYSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdjdXN0b20tY3NzLWlucHV0JykgYXMgSFRNTFRleHRBcmVhRWxlbWVudDtcbiAgICBjb25zdCBlZGl0b3IgPSBDb2RlTWlycm9yLmZyb21UZXh0QXJlYSh0ZXh0QXJlYSwge1xuICAgICAgICBtb2RlOiAnY3NzJyxcbiAgICAgICAgdGhlbWU6ICdkcmFjdWxhJyxcbiAgICAgICAgbGluZU51bWJlcnM6IHRydWUsXG4gICAgICAgIGxpbmVXcmFwcGluZzogdHJ1ZSxcbiAgICAgICAgZXh0cmFLZXlzOiB7XG4gICAgICAgICAgICAnVGFiJzogZnVuY3Rpb24oY206IENvZGVNaXJyb3JFZGl0b3IpIHtcbiAgICAgICAgICAgICAgICBjbS5yZXBsYWNlU2VsZWN0aW9uKCcgICAgJywgJ2VuZCcpO1xuICAgICAgICAgICAgfSxcbiAgICAgICAgICAgICdDdHJsLVNwYWNlJzogJ2F1dG9jb21wbGV0ZSdcbiAgICAgICAgfVxuICAgIH0pO1xuXG4gICAgLy8gU2V0IHRoZSBpbml0aWFsIGhlaWdodCB0byAyMGVtXG4gICAgZWRpdG9yLnNldFNpemUobnVsbCwgJzIwZW0nKTtcblxuICAgIGNvbnN0IHByZXZpZXdCdXR0b24gPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgncHJldmlldy1jaGFuZ2VzLWJ1dHRvbicpIGFzIEhUTUxCdXR0b25FbGVtZW50O1xuICAgIHByZXZpZXdCdXR0b24uYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCBmdW5jdGlvbigpIHtcbiAgICAgICAgY29uc3QgY3VzdG9tQ1NTID0gZWRpdG9yLmdldFZhbHVlKCk7XG4gICAgICAgIGNvbnN0IHByZXZpZXdBcmVhSWQgPSAncHJldmlldy1hcmVhJztcblxuICAgICAgICAvLyBSZW1vdmUgYW55IHByZXZpb3VzIGN1c3RvbSBzdHlsZXNcbiAgICAgICAgbGV0IG9sZFN0eWxlVGFnID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2N1c3RvbS1jc3Mtc3R5bGUnKSBhcyBIVE1MU3R5bGVFbGVtZW50O1xuICAgICAgICBpZiAob2xkU3R5bGVUYWcpIHtcbiAgICAgICAgICAgIG9sZFN0eWxlVGFnLnJlbW92ZSgpO1xuICAgICAgICB9XG5cbiAgICAgICAgLy8gQ3JlYXRlIGEgbmV3IHN0eWxlIHRhZyB3aXRoIHRoZSBjdXN0b20gQ1NTXG4gICAgICAgIGNvbnN0IHN0eWxlVGFnID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgnc3R5bGUnKTtcbiAgICAgICAgc3R5bGVUYWcuaWQgPSAnY3VzdG9tLWNzcy1zdHlsZSc7XG5cbiAgICAgICAgLy8gV3JhcCB1c2VyLXByb3ZpZGVkIENTUyBpbiBhIHNjb3BlZCBDU1MgYmxvY2tcbiAgICAgICAgc3R5bGVUYWcudGV4dENvbnRlbnQgPSBgIyR7cHJldmlld0FyZWFJZH0geyAke2N1c3RvbUNTU30gfWA7XG5cbiAgICAgICAgLy8gQXBwZW5kIHRoZSBuZXcgc3R5bGUgdGFnIHRvIHRoZSBoZWFkXG4gICAgICAgIGRvY3VtZW50LmhlYWQuYXBwZW5kQ2hpbGQoc3R5bGVUYWcpO1xuXG4gICAgICAgIC8vIEFwcGx5IHNlbGVjdGVkIGJhY2tncm91bmQgZnJvbSBsb2NhbFN0b3JhZ2VcbiAgICAgICAgY29uc3QgYmFja2dyb3VuZERhdGEgPSBKU09OLnBhcnNlKGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdzZWxlY3RlZEJhY2tncm91bmQnKSB8fCAne30nKTtcbiAgICAgICAgaWYgKGJhY2tncm91bmREYXRhICYmIGJhY2tncm91bmREYXRhLmJhY2tncm91bmRJbWFnZSkge1xuICAgICAgICAgICAgY29uc3QgcHJldmlld0FyZWEgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChwcmV2aWV3QXJlYUlkKSBhcyBIVE1MRWxlbWVudDtcbiAgICAgICAgICAgIHByZXZpZXdBcmVhLnN0eWxlLmJhY2tncm91bmRJbWFnZSA9IGJhY2tncm91bmREYXRhLmJhY2tncm91bmRJbWFnZTtcbiAgICAgICAgICAgIHByZXZpZXdBcmVhLnN0eWxlLmJhY2tncm91bmRTaXplID0gJ2NvdmVyJztcbiAgICAgICAgfVxuXG4gICAgICAgIC8vIEFwcGx5IHNlbGVjdGVkIGF2YXRhciBlZmZlY3QgZnJvbSBsb2NhbFN0b3JhZ2VcbiAgICAgICAgY29uc3QgYXZhdGFyRWZmZWN0RGF0YSA9IEpTT04ucGFyc2UobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3NlbGVjdGVkQXZhdGFyRWZmZWN0JykgfHwgJ3t9Jyk7XG4gICAgICAgIGlmIChhdmF0YXJFZmZlY3REYXRhICYmIGF2YXRhckVmZmVjdERhdGEuYXZhdGFyRWZmZWN0KSB7XG4gICAgICAgICAgICBjb25zdCBhdmF0YXJFZmZlY3RJbWcgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgnYXZhdGFyLWVmZmVjdCcpIGFzIEhUTUxJbWFnZUVsZW1lbnQ7XG4gICAgICAgICAgICBpZiAoYXZhdGFyRWZmZWN0SW1nKSB7XG4gICAgICAgICAgICAgICAgYXZhdGFyRWZmZWN0SW1nLnNyYyA9IGF2YXRhckVmZmVjdERhdGEuYXZhdGFyRWZmZWN0O1xuICAgICAgICAgICAgICAgIGF2YXRhckVmZmVjdEltZy5zdHlsZS5kaXNwbGF5ID0gJ2Jsb2NrJztcbiAgICAgICAgICAgIH1cbiAgICAgICAgfVxuXG4gICAgICAgIC8vIEFwcGx5IHNlbGVjdGVkIGNvbG9yIGZyb20gbG9jYWxTdG9yYWdlXG4gICAgICAgIGNvbnN0IHNlbGVjdGVkQ29sb3IgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbSgnc2VsZWN0ZWRDb2xvcicpO1xuICAgICAgICBpZiAoc2VsZWN0ZWRDb2xvcikge1xuICAgICAgICAgICAgY29uc3QgcHJvZmlsZUVsZW1lbnQgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZChcInNob3NoaW4tcHJvZmlsZVwiKSBhcyBIVE1MRWxlbWVudDtcbiAgICAgICAgICAgIGlmIChwcm9maWxlRWxlbWVudCkge1xuICAgICAgICAgICAgICAgIHByb2ZpbGVFbGVtZW50LmNsYXNzTmFtZSA9IGBmbGV4IGZsZXgtY29sIGdhcC00IGJvcmRlci1ncmVlbi00MDAgYm9yZGVyLTIgcm91bmRlZC1tZCB3LWZ1bGwgbWQ6dy0xLzIgbXgtYXV0byBwYi00ICR7c2VsZWN0ZWRDb2xvcn1gO1xuICAgICAgICAgICAgfVxuICAgICAgICB9XG4gICAgfSk7XG59KTsiXSwibmFtZXMiOltdLCJzb3VyY2VSb290IjoiIn0=\n//# sourceURL=webpack-internal:///./static/ts/data/_preview.ts\n");
 
-        // Remove any previous custom styles
-        let oldStyleTag = document.getElementById('custom-css-style');
-        if (oldStyleTag) {
-            oldStyleTag.remove();
-        }
+/***/ })
 
-        // Create a new style tag with the custom CSS
-        const styleTag = document.createElement('style');
-        styleTag.id = 'custom-css-style';
-
-        // Wrap user-provided CSS in a scoped CSS block
-        styleTag.textContent = `#${previewAreaId} { ${customCSS} }`;
-
-        // Append the new style tag to the head
-        document.head.appendChild(styleTag);
-
-        // Apply selected background from localStorage
-        const backgroundData = JSON.parse(localStorage.getItem('selectedBackground'));
-        if (backgroundData && backgroundData.backgroundImage) {
-            document.getElementById(previewAreaId).style.backgroundImage = backgroundData.backgroundImage;
-            document.getElementById(previewAreaId).style.backgroundSize = 'cover';
-        }
-
-        // Apply selected avatar effect from localStorage
-        const avatarEffectData = JSON.parse(localStorage.getItem('selectedAvatarEffect'));
-        if (avatarEffectData && avatarEffectData.avatarEffect) {
-            const avatarEffectImg = document.getElementById('avatar-effect');
-            if (avatarEffectImg) {
-                avatarEffectImg.src = avatarEffectData.avatarEffect;
-                avatarEffectImg.style.display = 'block';
-            }
-        }
-
-        // Apply selected color from localStorage
-        const selectedColor = localStorage.getItem('selectedColor');
-        if (selectedColor) {
-            // Add the selected color class
-            document.getElementById("shoshin-profile").className = `flex flex-col gap-4 border-green-400 border-2 rounded-md w-full md:w-1/2 mx-auto pb-4 ${selectedColor};`
-        }
-    });
-});
+/******/ 	});
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module can't be inlined because the eval-source-map devtool is used.
+/******/ 	var __webpack_exports__ = {};
+/******/ 	__webpack_modules__["./static/ts/data/_preview.ts"]();
+/******/ 	
+/******/ })()
+;
