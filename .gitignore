@@ -20,7 +20,7 @@ build/
 
 # JavaScript
 node_modules/
-*.log
+static/js/*.js
 
 # CSS
 *.css.map
