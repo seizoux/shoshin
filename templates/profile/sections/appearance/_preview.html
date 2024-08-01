@@ -11,12 +11,12 @@
         <div class="p-0 md:p-2 rounded-md bg-gray-800/30 w-full h-auto">
             <div id="shoshin-profile" class="flex flex-col gap-4 border-green-400 border-2 rounded-md w-full md:w-1/2 mx-auto bg-gray-900 pb-4">
                 <div class="preview relative h-[300px]">
-                    <img src="{{ data['banner'] if data['banner'] else 'https://beta.shoshin.moe/static/default_banner.png'}}" class="absolute inset-0 w-full h-full object-cover object-top bg-no-repeat border-b-8 border-gray-900">
+                    <img src="{{ data['banner'] if data['banner'] else 'https://beta.shoshin.moe/static/assets/default_banner.png'}}" class="absolute inset-0 w-full h-full object-cover object-top bg-no-repeat border-b-8 border-gray-900">
                     
                     <div class="h-56 relative">
                         <div class="absolute -bottom-32 left-8 m-auto w-36 h-36 flex items-center justify-center">
                             <div class="relative w-32 h-32 flex items-center justify-center">
-                                <img id="avatar" src="{{ data['avatar'] if data['avatar'] else 'https://beta.shoshin.moe/static/default_avatar.png'}}" class="w-full h-full object-cover rounded-full z-10 border-r-8 border-t-8 border-l-8 border-b-8 border-gray-900 border-b-green-500">
+                                <img id="avatar" src="{{ data['avatar'] if data['avatar'] else 'https://beta.shoshin.moe/static/assets/default_avatar.png'}}" class="w-full h-full object-cover rounded-full z-10 border-r-8 border-t-8 border-l-8 border-b-8 border-gray-900 border-b-green-500">
                             </div>
                             <img id="avatar-effect" src="" class="absolute inset-0 w-full h-full rounded-full z-20 object-cover" style="display: block;">
                         </div>
@@ -60,7 +60,7 @@
                 </div>
                 <div class="flex flex-col gap-2 ml-8 mr-8">
                     <div class="flex flex-row gap-2 items-center">
-                        <img id="shoshin-post-image" src='https://beta.shoshin.moe/static/default_avatar.png' class='w-6 rounded-full'>
+                        <img id="shoshin-post-image" src='https://beta.shoshin.moe/static/assets/default_avatar.png' class='w-6 rounded-full'>
                         <p id="shoshin-post-author" class="text-white font-semibold text-sm">{{ data['username'] }}</p>
                     </div>
                     <div id="shoshin-post-image" class="bg-gray-500/50 rounded-md w-full h-64"></div>
