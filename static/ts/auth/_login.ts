@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-export function onClick(e: { preventDefault: () => void; }): void {
+export function LonClick(e: { preventDefault: () => void; }): void {
     e.preventDefault();
     grecaptcha.enterprise.ready(async () => {
         let _i = await _f('recaptcha_token');

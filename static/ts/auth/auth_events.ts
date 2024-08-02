@@ -1,5 +1,5 @@
 import { RonClick } from './_register';
-import { onClick } from './_login';
+import { LonClick } from './_login';
 import { _ } from './_err';
 
 // Interface for field validation
@@ -18,8 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const registerButton = document.getElementById('_sho-register') as HTMLButtonElement;
 
     if (loginButton) {
-        loginButton.addEventListener('click', onClick);
-    } else if (registerButton) {
+        loginButton.addEventListener('click', LonClick);
+    }
+
+    if (registerButton) {
         registerButton.addEventListener('click', RonClick);
     }
 
@@ -65,19 +67,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorIcon = document.getElementById(field.errorIconId) as HTMLElement;
         const errorMessage = document.getElementById(field.errorMessageId) as HTMLElement;
 
-        if (inputField && checkIcon && errorIcon && errorMessage && registerButton) {
+        if (inputField && checkIcon && errorIcon && errorMessage) {
             inputField.addEventListener('blur', function() {
                 const value = inputField.value;
 
                 if (field.regex.test(value)) {
-                    if (field.validate_url == null) {
+                    if (!field.validate_url) {
                         checkIcon.classList.remove('hidden');
                         errorIcon.classList.add('hidden');
                         errorMessage.classList.add('hidden');
                         inputField.classList.add('border-green-400');
                         inputField.classList.remove('border-red-400');
-                        registerButton.disabled = false;
-                        registerButton.classList.remove('cursor-not-allowed');
                     } else {
                         fetch(field.validate_url, {
                             method: 'POST',
@@ -97,16 +97,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 errorMessage.classList.add('hidden');
                                 inputField.classList.add('border-green-400');
                                 inputField.classList.remove('border-red-400');
-                                registerButton.disabled = false;
-                                registerButton.classList.remove('cursor-not-allowed');
                             } else {
                                 checkIcon.classList.add('hidden');
                                 errorIcon.classList.remove('hidden');
                                 errorMessage.classList.remove('hidden');
                                 inputField.classList.add('border-red-400');
                                 inputField.classList.remove('border-green-400');
-                                registerButton.disabled = true;
-                                registerButton.classList.add('cursor-not-allowed');
                             }
                         }).catch(error => {
                             console.error(error);
@@ -118,10 +114,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     errorMessage.classList.remove('hidden');
                     inputField.classList.add('border-red-400');
                     inputField.classList.remove('border-green-400');
-                    registerButton.disabled = true;
-                    registerButton.classList.add('cursor-not-allowed');
                 }
             });
+        } else {
+            _._(0, { action: 'Field validation failed.', field: field.id }, 'auth');
         }
     });
 });

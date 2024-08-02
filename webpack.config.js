@@ -26,7 +26,7 @@ module.exports = {
         path: path.resolve(__dirname, 'static/js'),
     },
     mode: 'development',
-    devtool: 'eval-source-map',
+    devtool: 'source-map',
     optimization: {
         sideEffects: false
     }

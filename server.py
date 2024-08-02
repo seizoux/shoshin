@@ -76,7 +76,7 @@ app.register_blueprint(cookies_bp)
 @app.before_serving
 async def startup():
     app.pool = await asyncpg.create_pool(_WebSettings.DB)
-    log.info(f"[DATABASE] Connected: {app.pool}")
+    print(f"[DATABASE] Connected: {app.pool}")
     app.session = aiohttp.ClientSession()
 
 @app.before_request

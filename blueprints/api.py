@@ -103,8 +103,19 @@ async def send_friend_request():
             'blocked': []
         }
 
+    if not user_friends:
+        user_friends = {
+            'accepted': [],
+            'requests': [],
+            'blocked': []
+        }
+
     if user['uid'] in friend_friends['requests']:
         return jsonify({'status': 'error', 'payload': 'Request already sent'})
+
+    if user_friends:
+        if friend['uid'] in user_friends['requests']:
+            return jsonify({'status': 'error', 'payload': 'Pending request'})
 
     friend_friends['requests'].append(user['uid'])
 
@@ -113,6 +124,13 @@ async def send_friend_request():
         json.dumps(friend_friends),
         int(friend_id)
     )
+
+    if not user_friends:
+        await current_app.pool.execute(
+            'UPDATE users SET friends=$1 WHERE uid=$2',
+            json.dumps({'requests': [friend['uid']]}),
+            user['uid']
+        )
 
     return jsonify({'status': 'success', 'payload': 'Friend request sent'}), 200
 

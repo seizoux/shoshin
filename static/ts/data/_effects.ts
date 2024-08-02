@@ -6,10 +6,20 @@ interface Friend {
     username: string;
     uid: string;
     bio: string;
+    in: any;
+    out: any;
 }
 
 interface FriendResponse {
     payload: Friend[];
+}
+
+interface FriendResponseRequests {
+    status: string;
+    payload: {
+        in: Friend[];
+        out: Friend[];
+    };
 }
 
 interface SearchUser {
@@ -75,10 +85,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const addFriendsButton = document.getElementById('_sho-sendFriendRequest-button') as HTMLElement;
 
-    const friendButtons = {
+    type FriendButtonKeys = 'friendList' | 'friendRequestsList' | 'blockedFriendsList';
+
+    const friendButtons: Record<FriendButtonKeys, { func: () => Promise<void>; element: HTMLElement; div: HTMLElement }> = {
         friendList: { func: fetchFriendsList, element: document.getElementById('_sho-currentFriendsButton') as HTMLElement, div: document.getElementById('_sho-acceptedFriendsDiv') as HTMLElement },
-        friendRequestsList: { func: fetchFriendRequests, element: document.getElementById('_sho-requestInOutButton') as HTMLElement },
-        blockedFriendsList: { func: fetchFriendRequests, element: document.getElementById('_sho-blockedFriendsButton') as HTMLElement }
+        friendRequestsList: { func: fetchFriendRequests, element: document.getElementById('_sho-requestInOutButton') as HTMLElement, div: document.getElementById('_sho-friendRequestsDiv') as HTMLElement },
+        blockedFriendsList: { func: fetchFriendRequests, element: document.getElementById('_sho-blockedFriendsButton') as HTMLElement, div: document.getElementById('_sho-blockedFriendsDiv') as HTMLElement  }
     };
 
     async function fetchFriendsList(): Promise<void> {
@@ -102,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data.payload.forEach(friend => {
                 const friendHTML = `
                 <div class="flex flex-row items-center gap-4 hover:bg-gray-800/30 p-4 hover:cursor-pointer group">
-                    <img src="${friend.avatar || 'https://beta.shoshin.moe/static/default_avatar.png'}" class="w-12 h-12 rounded-full">
+                    <img src="${friend.avatar || 'https://beta.shoshin.moe/static/assets/default_avatar.png'}" class="w-12 h-12 rounded-full">
                     <div class="flex flex-col gap-1">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-gray-300 font-bold text-lg">${friend.username}</p>
@@ -135,6 +147,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700">
                 `;
+                
+                // Specify the key of the element you want to keep visible
+                const keepVisibleKey: FriendButtonKeys = 'friendList'; // Change this to the key you want to keep visible
+                
+                // Loop through the friendButtons object
+                (Object.keys(friendButtons) as FriendButtonKeys[]).forEach(key => {
+                    const button = friendButtons[key];
+                    if (key !== keepVisibleKey && button.div) {
+                        button.div.classList.add('hidden');
+                    } else {
+                        button.div.classList.remove('hidden');
+                    }
+                });
 
                 friendButtons.friendList.div.insertAdjacentHTML('beforeend', friendHTML);
             });
@@ -158,8 +183,100 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             }
             throw new Error('Failed to fetch friend requests');
-        }).then((data: FetchResponse) => {
+        }).then((data: FriendResponseRequests) => {
             _._(1, { data: data }, 'friends');
+            friendButtons.friendRequestsList.div.innerHTML = '';
+    
+            // Specify the key of the element you want to keep visible
+            const keepVisibleKey: FriendButtonKeys = 'friendRequestsList'; // Change this to the key you want to keep visible
+            
+            // Loop through the friendButtons object
+            (Object.keys(friendButtons) as FriendButtonKeys[]).forEach(key => {
+                const button = friendButtons[key];
+                if (key !== keepVisibleKey && button.div) {
+                    button.div.classList.add('hidden');
+                } else {
+                    button.div.classList.remove('hidden');
+                }
+            });
+
+            data.payload.in.forEach(friend => {
+                const friendHTML = `
+                <div class="flex flex-row items-center gap-4 hover:bg-gray-800/30 p-4 hover:cursor-pointer group">
+                    <img src="${friend.avatar || 'https://beta.shoshin.moe/static/assets/default_avatar.png'}" class="w-12 h-12 rounded-full">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex flex-row gap-2 items-center">
+                            <p class="text-gray-300 font-bold text-lg">${friend.username}</p>
+                            <p class="text-gray-600 font-semibold text-xs hidden group-hover:block">${friend.uid}</p>
+                        </div>
+                        <p class="text-gray-400 font-medium text-sm">${'Incoming Request'}</p>
+                    </div>
+                    <div class="flex flex-row gap-4 ml-auto">
+                        <div class="group/url rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-link-45deg" viewBox="0 0 16 16">
+                                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
+                                <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                            </svg>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/url:block bg-black/50 rounded-md w-auto text-nowrap">Copy URL</p>
+                        </div>
+                        <div class="group/remove rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-person-dash-fill" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M11 7.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5"/>
+                                <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                            </svg>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/remove:block bg-black/50 rounded-md">Unfriend</p>
+                        </div>
+                        <div class="group/block rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-ban" viewBox="0 0 16 16">
+                                <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
+                            </svg>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/block:block bg-black/50 rounded-md">Block</p>
+                        </div>
+                    </div>
+                </div>
+                <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700">
+                `;
+                friendButtons.friendRequestsList.div.insertAdjacentHTML('beforeend', friendHTML);
+            });
+    
+            data.payload.out.forEach(friend => {
+                const friendHTML = `
+                <div class="flex flex-row items-center gap-4 hover:bg-gray-800/30 p-4 hover:cursor-pointer group">
+                    <img src="${friend.avatar || 'https://beta.shoshin.moe/static/assets/default_avatar.png'}" class="w-12 h-12 rounded-full">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex flex-row gap-2 items-center">
+                            <p class="text-gray-300 font-bold text-lg">${friend.username}</p>
+                            <p class="text-gray-600 font-semibold text-xs hidden group-hover:block">${friend.uid}</p>
+                        </div>
+                        <p class="text-gray-400 font-medium text-sm">${'Outgoing Request'}</p>
+                    </div>
+                    <div class="flex flex-row gap-4 ml-auto">
+                        <div class="group/url rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-link-45deg" viewBox="0 0 16 16">
+                                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
+                                <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                            </svg>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/url:block bg-black/50 rounded-md w-auto text-nowrap">Copy URL</p>
+                        </div>
+                        <div class="group/remove rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-person-dash-fill" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M11 7.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5"/>
+                                <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                            </svg>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/remove:block bg-black/50 rounded-md">Unfriend</p>
+                        </div>
+                        <div class="group/block rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-ban" viewBox="0 0 16 16">
+                                <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
+                            </svg>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/block:block bg-black/50 rounded-md">Block</p>
+                        </div>
+                    </div>
+                </div>
+                <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700">
+                `;
+                friendButtons.friendRequestsList.div.insertAdjacentHTML('beforeend', friendHTML);
+            });
         }).catch(error => {
             console.error(error);
         });
@@ -220,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 data.users.forEach(user => {
                     const userHtml = `
                         <div class="flex cursor-pointer items-center gap-4 p-2 hover:bg-gray-300/30 rounded-md">
-                            <img src="${user.avatar || 'https://beta.shoshin.moe/static/default_avatar.png'}" class="h-8 w-8 rounded-full" />
+                            <img src="${user.avatar || 'https://beta.shoshin.moe/static/assets/default_avatar.png'}" class="h-8 w-8 rounded-full" />
                             <div class="flex flex-col">
                                 <h1 class="text-gray-300 font-semibold text-lg">${user.username}</h1>
                                 <p class="text-white font-light text-xs">${user.bio}</p>

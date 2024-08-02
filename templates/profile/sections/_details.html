@@ -51,10 +51,13 @@
         <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
             <div class="flex flex-col gap-2">
                 <div class="flex flex-row gap-2 items-center">
-                    <p class="text-white font-medium text-2xl">Username</p>
+                    <p class="text-white font-medium text-2xl">Username & UID</p>
                 </div>
-                <p class="text-gray-300 font-normal text-sm mb-4">Your public username is used to identify you on the platform. It is unique and cannot be changed due to security reasons.</p>
-                <input disabled="" id="_sho-mng-username-field" type="text" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['username'] }}" placeholder="Username">
+                <p class="text-gray-300 font-normal text-sm mb-4">Your public username is used to identify you on the platform. It is unique and cannot be changed due to security reasons. The same goes for your UID, it's an unique identifier used to identify you.</p>
+                <div class="flex flex-row gap-2">
+                    <input disabled="" id="_sho-mng-username-field" type="text" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 hover:cursor-not-allowed" value="{{ data['username'] }}" placeholder="Username">
+                    <input disabled= id="_sho-mng-username-field" type="text" class="w-full md:w-96 h-12 bg-[#2A3439] text-white text-lg p-4 rounded-md border-2 border-orange-500 select-all" value="{{ data['uid'] }}" placeholder="UID">
+                </div>
             </div>
         </div>
         <div class="border-orange-500 border w-full md:w-4/5 p-4 gap-16 rounded-sm relative">
