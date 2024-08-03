@@ -43,7 +43,6 @@ Javascript Reference:
 from quart import Blueprint, current_app, request, jsonify, make_response
 import settings as _WebSettings
 import bcrypt
-import settings as _WebSettings
 import random
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -58,6 +57,19 @@ from quart_cors import cors, route_cors
 idgen = SnowflakeIDGenerator()
 
 async def get_location(ip):
+    """
+    Get the location of the user using their IP address.
+
+    Parameters
+    ----------
+    ip : str
+        The IP address of the user.
+
+    Returns
+    -------
+    dict
+        A dictionary containing the city and country of the user.
+    """
     async with aiohttp.ClientSession() as session:
         async with session.get(f'https://ipinfo.io/{ip}/json') as resp:
             if resp.status == 200:
@@ -73,11 +85,45 @@ auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
 async def auth_verify(data):
+    """
+    Verify the user's email and password. If the user is registering, send a verification email. 
+    If the user is logging in, send an email with a verification code for MFA if enabled.
 
+    Request JSON
+    ------------
+    action : str
+        The action to perform ('register' or 'login').
+    email : str
+        The email of the user.
+    password : str, optional
+        The password of the user (required for login).
+
+    Returns
+    -------
+    200 OK
+    ---------
+    status : str
+        The status of the verification process.
+    payload : str
+        The result of the verification.
+    mfa : str
+        Whether MFA is required or not.
+    raw : dict
+        The raw data of the user.
+
+    400 Bad Request
+    ---------------
+    status : str
+        The status of the verification process.
+    payload : str
+        The result of the verification.
+    error : str
+        The error message.
+    """
     if data.action == "register":
         user = await current_app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data.email)
         if user:
-            return {"status": "error", "payload": "This email is already registered. Please login."}
+            return {"status": "error", "payload": "This email is already registered. Please login."}, 400
         
         message = Mail(
             from_email='no-reply@shoshin.moe',
@@ -106,7 +152,7 @@ async def auth_verify(data):
             sg.send(message)
             return {"status": "success", "payload": "Email sent"}
         except Exception as e:
-            return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
+            return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}, 400
     
     elif data.action == "login":
         # Get the client's IP address
@@ -118,7 +164,7 @@ async def auth_verify(data):
 
         user = await current_app.pool.fetchrow("SELECT * FROM users WHERE email = $1", data.email)
         if not user:
-            return {"status": "error", "payload": "This email is not registered. Please register."}
+            return {"status": "error", "payload": "This email is not registered. Please register."}, 400
         
         if bcrypt.checkpw(data.password.encode('utf-8'), user['password'].encode('utf-8')):
 
@@ -154,7 +200,7 @@ async def auth_verify(data):
                     sg = SendGridAPIClient(_WebSettings.SENDGRID_API_KEY)
                     sg.send(message)
                 except Exception as e:
-                    return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}
+                    return {"status": "error", "payload": "There was an error sending the email, please try again later.", "error": e}, 400
 
                 return {"status": "success", "payload": "Login successful", "mfa": "required", "raw": { "uid": user['uid'], "username": user['username']}}
             else:
@@ -168,23 +214,61 @@ async def auth_verify(data):
                     "payload": "Login successful, redirecting you to the account page...",
                     "mfa": "not required",
                     "raw": {"uid": user['uid'], "username": user['username'], "token": token}
-                }))
+                })), 200
                 
                 # Set the cookie on the response object
                 response = await set_cookie(response, token, 1)
                 
                 return response
         else:
-            return {"status": "error", "payload": "The password you entered is incorrect."}
+            return {"status": "error", "payload": "The password you entered is incorrect."}, 400
 
 @auth_bp.route('/verify/code', methods=['POST'])
 @requires(Authentication)
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
 async def verify_code(data):
+    """
+    Verify the verification code sent to the user's email. If the code is correct, proceed with the registration or login process.
+
+    Request JSON
+    ------------
+    action : str
+        The action to perform ('register' or 'login').
+    email : str
+        The email of the user.
+    code : int
+        The verification code sent to the user's email.
+    passw : str, optional
+        The password of the user (required for registration).
+    uid : int, optional
+        The UID of the user (required for registration).
+    username : str, optional
+        The username of the user (required for registration).
+
+    Returns
+    -------
+    200 OK
+    ---------
+    status : str
+        The status of the verification process.
+    payload : str
+        The result of the verification.
+    raw : dict
+        The raw data of the user.
+
+    400 Bad Request
+    ---------------
+    status : str
+        The status of the verification process.
+    payload : str
+        The result of the verification.
+    error : str
+        The error message.
+    """
     if data.action == "register":
         if not all([data.email, data.code, data.passw, data.uid, data.username, data.action]):
-            return {"status": "error", "payload": "Missing required fields: email, code, passw, uid, username, action"}
+            return {"status": "error", "payload": "Missing required fields: email, code, passw, uid, username, action"}, 400
         
         code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data.email, int(data.code))
         if code:
@@ -204,7 +288,7 @@ async def verify_code(data):
                 "status": "success",
                 "payload": "Code is correct, redirecting you to the account page...",
                 "raw": { "uid": data.uid, "username": data.username, "token": token}
-            }))
+            })), 200
         
 
             # Set the cookie on the response object
@@ -212,7 +296,7 @@ async def verify_code(data):
             
             return response
         else:
-            return {"status": "error", "payload": "The code you entered is incorrect."}
+            return {"status": "error", "payload": "The code you entered is incorrect."}, 400
         
     elif data.action == "login":
         code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data.email, int(data.code))
@@ -228,20 +312,48 @@ async def verify_code(data):
                 "status": "success",
                 "payload": "Code is correct, redirecting you to the account page...",
                 "raw": { "uid": data.uid, "username": data.username, "token": token}
-            }))
+            })), 200
             
             # Set the cookie on the response object
             response = await set_cookie(response, token, 1)
             
             return response
         else:
-            return {"status": "error", "payload": "The code you entered is incorrect."}
-        
-@auth_bp.route('/verify/session', methods=['POST', 'OPTIONS'])
+            return {"status": "error", "payload": "The code you entered is incorrect."}, 400
+
+@auth_bp.route('/verify/session', methods=['POST'])
 @requires(SessionToken)
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
 async def verify_token(data):
+    """
+    Verify the session token to check if it is valid.
+
+    Request JSON
+    ------------
+    token : str
+        The session token to verify.
+    just_verify : bool
+        Whether to just verify the token or perform additional actions.
+    action : str
+        The action to perform (optional).
+
+    Returns
+    -------
+    200 OK
+    ---------
+    status : str
+        The status of the verification process.
+    payload : str
+        The result of the verification process.
+
+    400 Bad Request
+    ---------------
+    status : str
+        The status of the verification process.
+    payload : str
+        The result of the verification process.
+    """
     token = data.token
     jv = data.just_verify
     ac = data.action
@@ -251,4 +363,4 @@ async def verify_token(data):
     if verify['status'] == "success":
         return {"status": "success", "payload": "Valid session token."}
     else:
-        return {"status": "error", "payload": "Invalid session token."}
+        return {"status": "error", "payload": "Invalid session token."}, 400

@@ -1,4 +1,3 @@
-# This file is the main file for the web server. It handles all the routes and the main server setup.
 import aiohttp
 from quart import Quart, redirect, request, session, render_template, jsonify, Response, url_for
 import settings as _WebSettings
@@ -13,18 +12,23 @@ from blueprints.auth import auth_bp
 from blueprints.captchag import captcha_bp
 from blueprints.cookies import cookies_bp
 import json
-from utility.methods import verify_session_token, sign_cookie, fetch_achievements
+from utility.methods import verify_session_token, sign_cookie, fetch_achievements, require_api_key, register_routes_with_spec
 import base64
+from apispec import APISpec
+from apispec.ext.marshmallow import MarshmallowPlugin
+
+# Initialize APISpec
+spec = APISpec(
+    title="Shoshin API",
+    version="1.0.0",
+    openapi_version="3.0.2",
+    plugins=[MarshmallowPlugin()],
+)
 
 sentry_sdk.init(
     dsn=_WebSettings.SENTRY_DSN,
     integrations=[QuartIntegration()],
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
     traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
     profiles_sample_rate=1.0,
 )
 
@@ -57,12 +61,15 @@ class WebQuart(Quart):
 
     async def get_pool(self) -> asyncpg.Pool:
         return self.pool
-    
+
 app = WebQuart(__name__, static_folder="./static")
 app.secret_key = b"random bytes representing quart secret key"
 
 log = logging.getLogger("hypercorn")
 log.setLevel(logging.INFO)
+
+handler = logging.StreamHandler()
+log.addHandler(handler)
 
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 app.jinja_env.filters['datetime'] = format_datetime
@@ -78,6 +85,8 @@ async def startup():
     app.pool = await asyncpg.create_pool(_WebSettings.DB)
     print(f"[DATABASE] Connected: {app.pool}")
     app.session = aiohttp.ClientSession()
+    app.spec = spec
+    register_routes_with_spec(app, app.spec, [api_bp, auth_bp])
 
 @app.before_request
 def make_session_permanent():
@@ -106,7 +115,7 @@ async def proxy():
     except Exception as e:
         app.logger.error(f"Error occurred: {str(e)}")
         return Response(f"Error occurred: {str(e)}", status=500)
-    
+
 @app.route("/privacy")
 async def privacy():
     return await render_template("legal/privacy.html")
@@ -124,7 +133,7 @@ async def wuwanews():
     data = await request.get_json()
     if not data:
         return {"status": "error", "message": "No data provided."}
-    
+
     _must_have = [
         "title",
         "content",
@@ -159,17 +168,13 @@ async def view_profile():
     uid_cookie = request.cookies.get('_sho-session')
     if uid_cookie:
         try:
-            # Split the cookie value into the base64-encoded JSON string and the signature
             value, signature = uid_cookie.rsplit('.', 1)
-            # Verify the signature
             if sign_cookie(value) != signature:
                 return redirect(url_for('login'))
 
-            # Decode the base64-encoded JSON string
             cookie_value_json = base64.b64decode(value).decode()
             uid_data = json.loads(cookie_value_json)
 
-            # Verify the session token
             data = await verify_session_token(uid_data['raw']['token'], False)
             print(f"Data: {data}")
             if data['status'] == "error":
@@ -197,3 +202,15 @@ async def view_profile():
             return redirect(url_for('login'))
 
     return redirect(url_for('login'))
+
+# Filter only specific routes for documentation
+@app.route('/openapi.json')
+async def openapi_json():
+    paths = {k: v for k, v in spec.to_dict()["paths"].items() if k.startswith(('/api', '/auth'))}
+    return jsonify({**spec.to_dict(), "paths": paths})
+
+# Serve the custom documentation page
+@app.route('/docs')
+@require_api_key
+async def docs():
+    return await render_template('docs.html')

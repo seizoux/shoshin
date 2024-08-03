@@ -7,8 +7,139 @@ import datetime
 import json
 import base64
 from functools import wraps
+import logging
+import re
+import settings as _WebSettings
+
+log = logging.getLogger("hypercorn")
+log.setLevel(logging.INFO)
 
 secret_key = 'your-secret-key'  # Store this securely, e.g., in environment variables
+
+def parse_docstring(docstring):
+    """
+    Parse the docstring to extract summary, description, parameters, request body schema, and response schema.
+    """
+    summary = ""
+    description = ""
+    request_body = {}
+    parameters = []
+    responses = {}
+
+    if docstring:
+        lines = docstring.strip().split("\n")
+        summary = lines[0]
+        description_lines = []
+        current_section = None
+        current_response_code = None
+
+        for line in lines[1:]:
+            line = line.strip()
+            if not line:
+                continue
+
+            section_match = re.match(r"^(Parameters|Request JSON|Request Headers|Request Form Data|Request Files|Returns|200 OK|400 Bad Request)\s*-*\s*$", line)
+            if section_match:
+                current_section = section_match.group(1)
+                if current_section in ["200 OK", "400 Bad Request"]:
+                    current_response_code = current_section.split()[0]
+                    responses[current_response_code] = {}
+                continue
+
+            if current_section in ["Parameters", "Request JSON", "Request Headers", "Request Form Data", "Request Files"]:
+                param_match = re.match(r"(\w+)\s*:\s*([\w.]+)\s*(.*)", line)
+                if param_match:
+                    name, _type, _desc = param_match.groups()
+                    if current_section == "Parameters":
+                        parameters.append({"name": name, "in": "path", "schema": {"type": _type.lower()}, "description": _desc})
+                    else:
+                        request_body[name] = {"type": _type.lower(), "description": _desc}
+                continue
+
+            if current_section in ["200 OK", "400 Bad Request"]:
+                response_match = re.match(r"(\w+)\s*:\s*([\w.]+)\s*(.*)", line)
+                if response_match:
+                    name, _type, _desc = response_match.groups()
+                    responses[current_response_code][name] = {"type": _type.lower(), "description": _desc}
+                continue
+
+            description_lines.append(line)
+
+        description = "\n".join(description_lines)
+
+    return summary, description, parameters, request_body, responses
+
+def register_routes_with_spec(app, spec, blueprint: list):
+    """Register all routes in a blueprint with the APISpec object.
+
+    Parameters
+    ----------
+    app : :class:`quart.Quart`
+        The Quart application instance.
+    spec : :class:`apispec.APISpec`
+        The APISpec instance.
+    blueprint : :class:`quart.Blueprint`
+        The blueprint containing the routes to register.
+    """
+    for rule in app.url_map.iter_rules():
+        for bp in blueprint:
+            if rule.endpoint.startswith(f"{bp.name}."):
+                log.info(f"Processing rule: {rule}")
+                view_func = app.view_functions[rule.endpoint]
+                path = str(rule).replace('<', '{').replace('>', '}')  # Convert to OpenAPI path format
+
+                if 'GET' in rule.methods:
+                    method = 'get'
+                elif 'POST' in rule.methods:
+                    method = 'post'
+                else:
+                    continue
+
+                log.info(f"Adding operation for path: {path} method: {method}")
+
+                # Parse the docstring to get operation details
+                summary, description, parameters, request_body, responses = parse_docstring(view_func.__doc__)
+
+                # Define the operation
+                operation = {
+                    "summary": summary,
+                    "description": description,
+                    "parameters": parameters,
+                    "responses": {}
+                }
+
+                for code, schema in responses.items():
+                    operation["responses"][code] = {
+                        "description": "Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": schema
+                                }
+                            }
+                        }
+                    }
+
+                if request_body:
+                    operation["requestBody"] = {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": request_body
+                                }
+                            }
+                        }
+                    }
+
+                # Directly update the spec paths
+                if path not in spec._paths:
+                    spec._paths[path] = {}
+                spec._paths[path][method] = operation
+
+                # Log the updated spec
+                log.info(f"Updated spec paths: {spec._paths}")
 
 class SnowflakeIDGenerator:
     """
@@ -32,6 +163,16 @@ class SnowflakeIDGenerator:
         self.last_timestamp = timestamp
 
         return (timestamp << 22) | (self.worker_id << 12) | self.sequence
+
+# Function to check API key
+def require_api_key(func):
+    @wraps(func)
+    async def decorated_function(*args, **kwargs):
+        if request.args.get('k') == _WebSettings.API_KEY:
+            return await func(*args, **kwargs)
+        else:
+            return jsonify({"message": "Forbidden"}), 403
+    return decorated_function
 
 def requires_valid_origin(func):
     @wraps(func)

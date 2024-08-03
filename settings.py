@@ -38,6 +38,8 @@ GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 
+API_KEY = os.getenv('API_KEY')
+
 URLS = {
     '_px': 'https://beta.shoshin.moe/captcha/google/recaptcha/verify',
     '_pl': 'https://beta.shoshin.moe/auth/verify',

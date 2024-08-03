@@ -61,6 +61,12 @@ body.basic-font {
   font-style: normal;
 }
 
+body.poppins {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
 
 .bg-fade-bottom::after {
   content: '';
