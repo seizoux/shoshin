@@ -13,8 +13,31 @@ module.exports = {
         'night-dark': "#36454F",
         'night-dark-alt': "#253037"
       },
+      keyframes: {
+        slideInFromLeft: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        slideOutToLeft: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+        slideInFromRight: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        slideOutToRight: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+      },
+      animation: {
+        slideInFromLeft: 'slideInFromLeft 0.3s ease-in-out forwards',
+        slideOutToLeft: 'slideOutToLeft 0.3s ease-in-out forwards',
+        slideInFromRight: 'slideInFromRight 0.3s ease-in-out forwards',
+        slideOutToRight: 'slideOutToRight 0.3s ease-in-out forwards',
+      },
     },
   },
   plugins: [],
 }
-
