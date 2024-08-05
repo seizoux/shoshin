@@ -29,5 +29,11 @@ module.exports = {
     devtool: 'source-map',
     optimization: {
         sideEffects: false
-    }
+    },
+    cache: {
+        type: 'filesystem',
+        buildDependencies: {
+            config: [__filename], // Cache invalidation when the config file changes
+        },
+    },
 };

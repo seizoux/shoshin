@@ -207,8 +207,26 @@ async def verify_session_token(token, just_verify: bool = True):
     
     return {"status": "success", "payload": data}
 
+async def validate_token(token):
+    data = await verify_session_token(token, False)
+    if data['status'] == "error":
+        if data['message'] == "Invalid session token.":
+            return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
+        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
+
+    return data['payload']
+
 def sign_cookie(value):
     return hmac.new(secret_key.encode(), value.encode(), hashlib.sha256).hexdigest()
+
+def parse_cookie(cookie):
+    value, signature = cookie.rsplit('.', 1)
+    if sign_cookie(value) != signature:
+        return jsonify({'message': 'Invalid cookie signature'}), 403
+
+    # Base64 decode the value
+    cookie_value_json = base64.b64decode(value).decode()
+    return cookie_value_json
 
 async def set_cookie(response, token, days):
     date = datetime.datetime.utcnow() + datetime.timedelta(days=days)

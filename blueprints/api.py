@@ -5,7 +5,8 @@ import settings as _WebSettings
 import logging
 from utility import PIL
 from quart_cors import cors, route_cors
-from utility.methods import requires_valid_origin, verify_session_token
+from utility.methods import requires_valid_origin, verify_session_token, validate_token
+from utility.schemas import requires, SendRequestSchema, EnvSchema, UsernameSchema, SearchSchema, HandleFriendRequestSchema, Token
 import json
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -14,7 +15,8 @@ log = logging.getLogger("hypercorn")
 @api_bp.route('/friends/search', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
-async def search_user():
+@requires(SearchSchema)
+async def search_user(data):
     """Search for users by UID or username.
 
     Request JSON
@@ -50,17 +52,10 @@ async def search_user():
     payload : str
         The error message.
     """
-    data = await request.json
-    token = data['token']
-    search = data['search']
+    token = data.token
+    search = data.search
 
-    data = await verify_session_token(token, False)
-    if data['status'] == "error":
-        if data['message'] == "Invalid session token.":
-            return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
-        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
-
-    user = data['payload']
+    user = await validate_token(token)
     if not user:
         return jsonify({'status': 'error', 'payload': 'User not found'}), 400
 
@@ -95,12 +90,13 @@ async def search_user():
             'bio': f['bio']
         })
 
-    return jsonify({'status': 'success', 'payload': _f}), 200
+    return jsonify({'status': 'success', 'payload': _f})
 
 @api_bp.route('/friends/request', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
-async def send_friend_request():
+@requires(SendRequestSchema)
+async def send_friend_request(data):
     """Send a friend request to another user.
 
     Request JSON
@@ -126,17 +122,10 @@ async def send_friend_request():
     payload : str
         The error message.
     """
-    data = await request.json
-    token = data['token']
-    friend_id = data['friend_id']
+    token = data.token
+    friend_id = data.friend_id
 
-    data = await verify_session_token(token, False)
-    if data['status'] == "error":
-        if data['message'] == "Invalid session token.":
-            return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
-        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
-
-    user = data['payload']
+    user = await validate_token(token)
 
     friend = await current_app.pool.fetchrow('SELECT * FROM users WHERE uid=$1', int(friend_id))
 
@@ -195,7 +184,8 @@ async def send_friend_request():
 @api_bp.route('/friend/request/handle', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
-async def handle_friend_request():
+@requires(HandleFriendRequestSchema)
+async def handle_friend_request(data):
     """Handle incoming friend requests (accept or reject).
 
     Request JSON
@@ -223,24 +213,19 @@ async def handle_friend_request():
     payload : str
         The error message.
     """
-    data = await request.json
-    token = data['token']
-    friend_id = data['friend_id']
-    action = data['action']
+    token = data.token
+    request_uid = data.request_uid
+    action = data.action
 
-    data = await verify_session_token(token, False)
-    if data['status'] == "error":
-        if data['message'] == "Invalid session token.":
-            return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
-        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
+    log.info(f"Data: {data}")
 
-    user = data['payload']
-    friend = await current_app.pool.fetchrow('SELECT friends FROM users WHERE id=$1', friend_id)
+    user = await validate_token(token)
+    friend = await current_app.pool.fetchrow('SELECT friends FROM users WHERE uid=$1', int(request_uid))
 
     if not user or not friend:
         return jsonify({'status': 'error', 'payload': 'User not found'}), 400
 
-    if not friend_friends:
+    if not friend['friends']:
         friend_friends = {
             'accepted': [],
             'requests': [],
@@ -249,7 +234,7 @@ async def handle_friend_request():
     else:
         friend_friends = json.loads(friend['friends'])
 
-    if not user_friends:
+    if not user['friends']:
         user_friends = {
             'accepted': [],
             'requests': [],
@@ -258,17 +243,19 @@ async def handle_friend_request():
     else:
         user_friends = json.loads(user['friends'])
 
-    if 'requests' not in user_friends or friend_id not in user_friends['requests']:
+    if 'requests' not in user_friends or int(request_uid) not in user_friends['requests']:
         return jsonify({'status': 'error', 'payload': 'No friend request found'}), 400
 
-    user_friends['requests'].remove(friend_id)
-
     if action == 'accept':
-        user_friends['accepted'].append({'uid': friend_id, 'friends_since': datetime.datetime.now()})
-        friend_friends['accepted'].append({'uid': user['uid'], 'friends_since': datetime.datetime.now()})
-        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE id=$2', json.dumps(friend_friends), friend_id)
+        user_friends['requests'].remove(int(request_uid))
+        user_friends['accepted'].append({'uid': int(request_uid), 'friends_since': datetime.datetime.now().isoformat()})
+        friend_friends['accepted'].append({'uid': user['uid'], 'friends_since': datetime.datetime.now().isoformat()})
+        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE uid=$2', json.dumps(user_friends), user['uid'])
+        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE uid=$2', json.dumps(friend_friends), int(request_uid))
 
-    await current_app.pool.execute('UPDATE users SET friends=$1 WHERE id=$2', json.dumps(user_friends), user['uid'])
+    elif action == 'deny':
+        user_friends['requests'].remove(int(request_uid))
+        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE uid=$2', json.dumps(user_friends), user['uid'])
 
     return jsonify({'status': 'success', 'payload': f'Friend request {action}ed'}), 200
 
@@ -307,13 +294,7 @@ async def friends_list(token):
     payload : str
         The error message.
     """
-    data = await verify_session_token(token, False)
-    if data['status'] == "error":
-        if data['message'] == "Invalid session token.":
-            return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
-        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
-
-    user = data['payload']
+    user = await validate_token(token)
 
     if not user:
         return jsonify({'status': 'error', 'payload': 'User not found'}), 400
@@ -324,8 +305,8 @@ async def friends_list(token):
     friends = json.loads(user['friends'])
 
     friends_data = []
-    for friend_id in friends['accepted']:
-        friend = await current_app.pool.fetchrow('SELECT * FROM users WHERE uid=$1', friend_id)
+    for f in friends['accepted']:
+        friend = await current_app.pool.fetchrow('SELECT * FROM users WHERE uid=$1', int(f['uid']))
         friends_data.append({
             'uid': str(friend['uid']),
             'username': friend['username'],
@@ -338,7 +319,8 @@ async def friends_list(token):
 @api_bp.route('/friends/requests/in-out', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
-async def friends_requests():
+@requires(Token)
+async def friends_requests(data):
     """Get incoming and outgoing friend requests for the authenticated user.
 
     Request JSON
@@ -380,16 +362,9 @@ async def friends_requests():
     payload : str
         The error message.
     """
-    data = await request.json
-    token = data['token']
+    token = data.token
 
-    data = await verify_session_token(token, False)
-    if data['status'] == "error":
-        if data['message'] == "Invalid session token.":
-            return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
-        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
-
-    user = data['payload']
+    user = await validate_token(token)
 
     if user.get('friends'):
         friends = json.loads(user['friends'])
@@ -399,7 +374,7 @@ async def friends_requests():
         for uid in requests:
             friend = await current_app.pool.fetchrow('SELECT * FROM users WHERE uid=$1', uid)
             _in.append({
-                'uid': friend['uid'],
+                'uid': str(friend['uid']),
                 'username': friend['username'],
                 'avatar': friend['avatar'],
                 'bio': friend['bio']
@@ -412,7 +387,7 @@ async def friends_requests():
                 _friends = json.loads(u['friends'])
                 if user['uid'] in _friends['requests']:
                     _out.append({
-                        'uid': str(user['uid']),
+                        'uid': str(u['uid']),
                         'username': u['username'],
                         'avatar': u['avatar'],
                         'bio': u['bio']
@@ -424,7 +399,8 @@ async def friends_requests():
 @api_bp.route('/env', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
-async def get_env():
+@requires(EnvSchema)
+async def get_env(data):
     """Get environment settings based on the provided key.
 
     Request JSON
@@ -452,13 +428,13 @@ async def get_env():
         "u:/": _WebSettings.URLS,
     }
 
-    data = await request.get_json()
-    return jsonify({'key': _vv[data['key']]}), 200
+    return jsonify({'key': _vv[data.key]}), 200
 
 @api_bp.route('/username/availability', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
 @requires_valid_origin
-async def check_username():
+@requires(UsernameSchema)
+async def check_username(data):
     """Check the availability of a username.
 
     Request JSON
@@ -484,14 +460,8 @@ async def check_username():
     message : str
         The error message.
     """
-    data = await request.get_json()
-    if not data:
-        return {"status": "error", "message": "No data provided."}, 400
 
-    if 'username' not in data:
-        return {"status": "error", "message": "Missing required field: username"}, 400
-
-    user = await current_app.pool.fetchrow("SELECT * FROM users WHERE username = $1", data['username'])
+    user = await current_app.pool.fetchrow("SELECT * FROM users WHERE username = $1", data.username)
     if user:
         return {"status": "error", "message": "This username is already taken.", "result": False}, 400
     else:

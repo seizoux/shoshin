@@ -30,7 +30,7 @@ interface SearchUser {
 }
 
 interface SearchResponse {
-    users: SearchUser[];
+    payload: SearchUser[];
 }
 
 interface FetchResponse {
@@ -207,36 +207,92 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="flex flex-col gap-1">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-gray-300 font-bold text-lg">${friend.username}</p>
-                            <p class="text-gray-600 font-semibold text-xs hidden group-hover:block">${friend.uid}</p>
+                            <p id="_sho-requestsUserUID" class="text-gray-600 font-semibold text-xs hidden group-hover:block">${friend.uid}</p>
                         </div>
                         <p class="text-gray-400 font-medium text-sm">${'Incoming Request'}</p>
                     </div>
                     <div class="flex flex-row gap-4 ml-auto">
-                        <div class="group/url rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-link-45deg" viewBox="0 0 16 16">
-                                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
-                                <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                        <div id="_sho-accept-request" class="group/accept rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="green" class="bi bi-person-plus" viewBox="0 0 16 16">
+                                <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.289 10 6 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                                <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5"/>
                             </svg>
-                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/url:block bg-black/50 rounded-md w-auto text-nowrap">Copy URL</p>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/accept:block bg-black rounded-md w-auto text-nowrap">Accept</p>
                         </div>
-                        <div class="group/remove rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-person-dash-fill" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M11 7.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5"/>
-                                <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                        <div id="_sho-deny-request" class="group/deny rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-person-slash" viewBox="0 0 16 16">
+                                <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
                             </svg>
-                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/remove:block bg-black/50 rounded-md">Unfriend</p>
-                        </div>
-                        <div class="group/block rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-ban" viewBox="0 0 16 16">
-                                <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
-                            </svg>
-                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/block:block bg-black/50 rounded-md">Block</p>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/deny:block bg-black rounded-md">Deny</p>
                         </div>
                     </div>
                 </div>
                 <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700">
                 `;
                 friendButtons.friendRequestsList.div.insertAdjacentHTML('beforeend', friendHTML);
+
+                const acceptButton = document.getElementById('_sho-accept-request') as HTMLElement;
+                const denyButton = document.getElementById('_sho-deny-request') as HTMLElement;
+                const userUID = document.getElementById('_sho-requestsUserUID') as HTMLElement;
+    
+                acceptButton.addEventListener('click', function() {
+                    fetch('/api/friend/request/handle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            'request_uid': userUID.textContent,
+                            'token': uidCookie.raw.token,
+                            'action': 'accept'
+                        })
+                    }).then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        if (response.status === 400) {
+                            // Since i'm doing jsonify in quart like `jsonify({'error': 'Request already accepted'}), 400`, let's console.log the json
+                            response.json().then(console.log);
+                            return;
+                        }
+                    }).then((data: FetchResponse) => {
+                        _._(1, { data: data }, 'friends');
+                        if (data.status === 'error') {
+                            return;
+                        }
+                        fetchFriendRequests();
+                    }).catch(error => {
+                        console.error(error);
+                    });
+                });
+
+                denyButton.addEventListener('click', function() {
+                    fetch('/api/friend/request/handle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            'request_uid': userUID.textContent,
+                            'token': uidCookie.raw.token,
+                            'action': 'deny'
+                        })
+                    }).then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        if (response.status === 400) {
+                            // Since i'm doing jsonify in quart like `jsonify({'error': 'Request already accepted'}), 400`, let's console.log the json
+                            response.json().then(console.log);
+                            return;
+                        }
+                    }).then((data: FetchResponse) => {
+                        _._(1, { data: data }, 'friends');
+                        if (data.status === 'error') {
+                            return;
+                        }
+                        fetchFriendRequests();
+                    }).catch(error => {
+                        console.error(error);
+                    });
+                });
+
             });
     
             data.payload.out.forEach(friend => {
@@ -246,37 +302,59 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="flex flex-col gap-1">
                         <div class="flex flex-row gap-2 items-center">
                             <p class="text-gray-300 font-bold text-lg">${friend.username}</p>
-                            <p class="text-gray-600 font-semibold text-xs hidden group-hover:block">${friend.uid}</p>
+                            <p id="_sho-requestsUserUID" class="text-gray-600 font-semibold text-xs hidden group-hover:block">${friend.uid}</p>
                         </div>
                         <p class="text-gray-400 font-medium text-sm">${'Outgoing Request'}</p>
                     </div>
                     <div class="flex flex-row gap-4 ml-auto">
-                        <div class="group/url rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-link-45deg" viewBox="0 0 16 16">
-                                <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1 1 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4 4 0 0 1-.128-1.287z"/>
-                                <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                        <div id="_sho-cancel-request" class="group/cancel rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="yellow" class="bi bi-trash" viewBox="0 0 16 16">
+                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
                             </svg>
-                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/url:block bg-black/50 rounded-md w-auto text-nowrap">Copy URL</p>
-                        </div>
-                        <div class="group/remove rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="orange" class="bi bi-person-dash-fill" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M11 7.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5"/>
-                                <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
-                            </svg>
-                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/remove:block bg-black/50 rounded-md">Unfriend</p>
-                        </div>
-                        <div class="group/block rounded-full bg-gray-800 relative w-auto items-center flex justify-center px-3 py-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-ban" viewBox="0 0 16 16">
-                                <path d="M15 8a6.97 6.97 0 0 0-1.71-4.584l-9.874 9.875A7 7 0 0 0 15 8M2.71 12.584l9.874-9.875a7 7 0 0 0-9.874 9.874ZM16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0"/>
-                            </svg>
-                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/block:block bg-black/50 rounded-md">Block</p>
+                            <p class="text-gray-300 font-medium text-md px-2 py-1 hover:cursor-pointer absolute bottom-8 -translate-y-1/2 hidden group-hover/cancel:block bg-black rounded-md w-auto text-nowrap">Cancel Request</p>
                         </div>
                     </div>
                 </div>
                 <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700">
                 `;
                 friendButtons.friendRequestsList.div.insertAdjacentHTML('beforeend', friendHTML);
+
+                const cancelButton = document.getElementById('_sho-cancel-request') as HTMLElement;
+                
+                const userUID = document.getElementById('_sho-requestsUserUID') as HTMLElement;
+    
+                cancelButton.addEventListener('click', function() {
+                    fetch('/api/friend/request/handle', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            'request_uid': userUID.textContent,
+                            'token': uidCookie.raw.token,
+                            'action': 'cancel'
+                        })
+                    }).then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        if (response.status === 400) {
+                            // Since i'm doing jsonify in quart like `jsonify({'error': 'Request already accepted'}), 400`, let's console.log the json
+                            response.json().then(console.log);
+                            return;
+                        }
+                    }).then((data: FetchResponse) => {
+                        _._(1, { data: data }, 'friends');
+                        if (data.status === 'error') {
+                            return;
+                        }
+                        fetchFriendRequests();
+                    }).catch(error => {
+                        console.error(error);
+                    });
+                });
+
             });
+
         }).catch(error => {
             console.error(error);
         });
@@ -334,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const searchResults = document.getElementById('shoshin-friends-found') as HTMLElement;
                 searchResults.innerHTML = '';
 
-                data.users.forEach(user => {
+                data.payload.forEach(user => {
                     const userHtml = `
                         <div class="flex cursor-pointer items-center gap-4 p-2 hover:bg-gray-300/30 rounded-md">
                             <img src="${user.avatar || 'https://beta.shoshin.moe/static/assets/default_avatar.png'}" class="h-8 w-8 rounded-full" />

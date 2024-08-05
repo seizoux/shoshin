@@ -37,7 +37,7 @@ export async function eraseCookie(name: string): Promise<CookieResponse | undefi
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': name,
+                'name': name,
             },
         });
 

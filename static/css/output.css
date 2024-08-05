@@ -3298,7 +3298,19 @@ body.dark .bg-fade-bottom::after {
   fill: #f97316;
 }
 
+.group\/accept:hover .group-hover\/accept\:block {
+  display: block;
+}
+
 .group\/block:hover .group-hover\/block\:block {
+  display: block;
+}
+
+.group\/cancel:hover .group-hover\/cancel\:block {
+  display: block;
+}
+
+.group\/deny:hover .group-hover\/deny\:block {
   display: block;
 }
 

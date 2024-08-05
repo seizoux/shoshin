@@ -5,7 +5,7 @@ import os
 import datetime
 import json
 import base64
-from utility.methods import sign_cookie
+from utility.methods import parse_cookie, verify_session_token
 
 cookies_bp = Blueprint('cookies', __name__, url_prefix='/ck')
 
@@ -20,19 +20,32 @@ async def get_cookie():
         return jsonify({'message': 'No cookie found'}), 404
 
     try:
-        value, signature = cookie_value.rsplit('.', 1)
-        if sign_cookie(value) != signature:
-            return jsonify({'message': 'Invalid cookie signature'}), 403
-
-        # Base64 decode the value
-        cookie_value_json = base64.b64decode(value).decode()
-        return jsonify(json.loads(cookie_value_json))
+        cjson = parse_cookie(cookie_value)
+        return jsonify(json.loads(cjson))
     except Exception as e:
         return jsonify({'message': 'Error parsing cookie'}), 400
 
 @cookies_bp.route('/erasecookie', methods=['GET'])
 async def erase_cookie():
-    cookie = request.headers.get('Cookie')
+    cookie_name = request.headers.get('name')
+    print(f"Cookie name: {cookie_name}")
+    if not cookie_name:
+        return jsonify({'message': 'Cookie name not provided'}), 400
+
+    cookie_value = request.cookies.get(cookie_name)
+    if not cookie_value:
+        return jsonify({'message': 'No cookie found'}), 404
+
+    try:
+        cjson = json.loads(parse_cookie(cookie_value))
+    except Exception as e:
+        return jsonify({'message': 'Error parsing cookie'}), 400
+
+    data = await verify_session_token(cjson['raw']['token'], True)
+    if data['status'] == "success":
+        _uuid = await current_app.pool.execute("DELETE FROM sessions WHERE token = $1 RETURNING uid", cjson['raw']['token'])
+        await current_app.pool.execute("UPDATE users SET sessions = array_remove(sessions, $2) WHERE uid = $1", int(_uuid), cjson['raw']['token'])
+
     response = await make_response(jsonify({'message': 'Cookie erased'}))
-    response.set_cookie(cookie, '', expires=0)
+    response.set_cookie(cookie_name, '', expires=0)
     return response

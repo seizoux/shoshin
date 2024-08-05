@@ -46,6 +46,15 @@
         body.dark-mode .bg-gray-100 {
             background-color: #6d798d !important;
         }
+        body {
+            overflow-x: hidden; /* Prevent horizontal overflow */
+        }
+        .hidden-sidebar {
+            display: none;
+        }
+        .shown-sidebar {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 poppins">
@@ -62,8 +71,8 @@
             </svg>
         </button>
     </div>
-    <div class="flex flex-row">
-        <div id="routes-div" class="w-full md:w-1/5 bg-gray-300 shadow-md p-4 h-auto absolute md:sticky top-0 left-0 transform -translate-x-full md:transform-none hidden md:block">
+    <div class="flex flex-row h-screen">
+        <div id="routes-div" class="w-full md:w-1/5 bg-gray-300 shadow-md p-4 h-auto overflow-auto absolute md:sticky top-0 left-0 transform -translate-x-full md:transform-none hidden md:block">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex flex-row gap-1 items-end">
                     <img src="../static/assets/shoshinapilogo.png" alt="Shoshin API Logo" class="w-64 h-auto">
@@ -95,7 +104,7 @@
         <div class="w-full md:w-3/5 container mx-auto py-8 px-4 overflow-y-auto h-screen">
             <div id="docs"></div>
         </div>
-        <div id="contributors-div" class="w-full md:w-1/5 bg-gray-300 shadow-md p-4 h-screen absolute md:sticky top-0 right-0 bottom-0 transform translate-x-full md:transform-none hidden md:block">
+        <div id="contributors-div" class="w-full md:w-1/5 bg-gray-300 shadow-md p-4 h-screen absolute overflow-y-hidden md:sticky top-0 right-0 transform -translate-x-full md:transform-none hidden md:block">
             <div class="flex flex-col gap-1 mb-4">
                 <h2 class="text-3xl font-bold text-gray-700">Contributors</h2>
                 <p class="text-gray-600 text-sm block md:hidden">Click anywhere to close this sidebar!</p>
@@ -339,19 +348,19 @@
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
         }
-
+    
         document.getElementById('toggle-dark-mode').addEventListener('click', toggleDarkMode);
-
+    
         fetchDocs().catch(error => {
             const docsContainer = document.getElementById('docs');
             docsContainer.textContent = 'Failed to load API documentation: ' + error.message;
         });
-
+    
         fetchContributors().catch(error => {
             const contributorsList = document.getElementById('contributors-list');
             contributorsList.textContent = 'Failed to load contributors: ' + error.message;
         });
-
+    
         const toggleLeftSidebar = document.getElementById('toggle-left-sidebar'); // Button to toggle left sidebar
         const toggleRightSidebar = document.getElementById('toggle-right-sidebar'); // Button to toggle right sidebar
         
@@ -366,7 +375,7 @@
             if (!isMobile()) {
                 // Ensure both sidebars are visible on desktop
                 routesDiv.classList.remove('hidden', '-translate-x-full', 'animate-slideOutToLeft', 'animate-slideInFromLeft');
-                contributorsDiv.classList.remove('hidden', 'translate-x-full', 'animate-slideOutToRight', 'animate-slideInFromRight');
+                contributorsDiv.classList.remove('hidden', 'translate-x-full', 'animate-slideOutToRight', 'animate-slideInFromLeft');
             }
         };
         
@@ -391,14 +400,14 @@
         toggleRightSidebar.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent the click from propagating to the document
             if (isMobile()) {
-                if (contributorsDiv.classList.contains('translate-x-full')) {
-                    contributorsDiv.classList.remove('hidden', 'translate-x-full', 'animate-slideOutToRight');
-                    contributorsDiv.classList.add('animate-slideInFromRight');
+                if (contributorsDiv.classList.contains('-translate-x-full')) {
+                    contributorsDiv.classList.remove('hidden', '-translate-x-full', 'animate-slideOutToLeft');
+                    contributorsDiv.classList.add('animate-slideInFromLeft');
                 } else {
-                    contributorsDiv.classList.remove('animate-slideInFromRight');
-                    contributorsDiv.classList.add('animate-slideOutToRight');
+                    contributorsDiv.classList.remove('animate-slideInFromLeft');
+                    contributorsDiv.classList.add('animate-slideOutToLeft');
                     setTimeout(() => {
-                        contributorsDiv.classList.add('hidden', 'translate-x-full');
+                        contributorsDiv.classList.add('hidden', '-translate-x-full');
                     }, 300); // Match the duration of the animation
                 }
             }
@@ -421,10 +430,10 @@
         // Add event listener to hide right sidebar when clicking anywhere inside the right sidebar
         contributorsDiv.addEventListener('click', (event) => {
             if (isMobile() && contributorsDiv.contains(event.target)) {
-                contributorsDiv.classList.remove('animate-slideInFromRight');
-                contributorsDiv.classList.add('animate-slideOutToRight');
+                contributorsDiv.classList.remove('animate-slideInFromLeft');
+                contributorsDiv.classList.add('animate-slideOutToLeft');
                 setTimeout(() => {
-                    contributorsDiv.classList.add('hidden', 'translate-x-full');
+                    contributorsDiv.classList.add('hidden', '-translate-x-full');
                 }, 300); // Match the duration of the animation
             }
         });

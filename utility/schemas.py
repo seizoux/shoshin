@@ -37,3 +37,25 @@ class UserAuth(msgspec.Struct):
     email: str
     action: str
     password: Optional[str] = None
+
+class EnvSchema(msgspec.Struct):
+    key: str
+
+class UsernameSchema(msgspec.Struct):
+    username: str
+
+class SearchSchema(msgspec.Struct):
+    token: str
+    search: str
+
+class SendRequestSchema(msgspec.Struct):
+    token: str
+    friend_id: str
+
+class HandleFriendRequestSchema(msgspec.Struct):
+    token: str
+    friend_id: str
+    action: str
+
+class Token(msgspec.Struct):
+    token: str
