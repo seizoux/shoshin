@@ -5,7 +5,7 @@ import os
 import datetime
 import json
 import base64
-from utility.methods import parse_cookie, verify_session_token
+from utility.methods import SessionManager
 
 cookies_bp = Blueprint('cookies', __name__, url_prefix='/ck')
 
@@ -20,7 +20,7 @@ async def get_cookie():
         return jsonify({'message': 'No cookie found'}), 404
 
     try:
-        cjson = parse_cookie(cookie_value)
+        cjson = SessionManager.parse_cookie(cookie_value)
         return jsonify(json.loads(cjson))
     except Exception as e:
         return jsonify({'message': 'Error parsing cookie'}), 400
@@ -37,11 +37,11 @@ async def erase_cookie():
         return jsonify({'message': 'No cookie found'}), 404
 
     try:
-        cjson = json.loads(parse_cookie(cookie_value))
+        cjson = json.loads(SessionManager.parse_cookie(cookie_value))
     except Exception as e:
         return jsonify({'message': 'Error parsing cookie'}), 400
 
-    data = await verify_session_token(cjson['raw']['token'], True)
+    data = await SessionManager.verify_session_token(cjson['raw']['token'], True)
     if data['status'] == "success":
         _uuid = await current_app.pool.execute("DELETE FROM sessions WHERE token = $1 RETURNING uid", cjson['raw']['token'])
         await current_app.pool.execute("UPDATE users SET sessions = array_remove(sessions, $2) WHERE uid = $1", int(_uuid), cjson['raw']['token'])

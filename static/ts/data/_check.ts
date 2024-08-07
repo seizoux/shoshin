@@ -1,18 +1,9 @@
 import { getCookie, eraseCookie } from '../_cookie_manager';
 import { _ } from '../auth/_err';
 import { _pv } from '../auth/_proxy';
+import { UidData, FetchResponse } from '../interfaces';
 
-interface UidData {
-    expiry: number;
-    raw: {
-        token: string;
-    };
-}
-
-interface FetchResponse {
-    payload: boolean;
-}
-
+`
 document.addEventListener('DOMContentLoaded', async function() {
     // Get the browser cookie named 'uid'
     let uidData = await getCookie('_sho-session');
@@ -55,3 +46,4 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.href = '/login';
     }
 });
+`

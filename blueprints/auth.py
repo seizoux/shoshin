@@ -48,7 +48,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import asyncio
 import aiohttp
-from utility.methods import SnowflakeIDGenerator, create_session_token, verify_session_token, set_cookie, requires_valid_origin
+from utility.methods import SnowflakeIDGenerator, requires_valid_origin, SessionManager
 from utility.schemas import Authentication, SessionToken, UserAuth, requires
 import json
 import datetime
@@ -204,7 +204,7 @@ async def auth_verify(data):
 
                 return {"status": "success", "payload": "Login successful", "mfa": "required", "raw": { "uid": user['uid'], "username": user['username']}}
             else:
-                token = create_session_token(user['username'])
+                token = SessionManager.create_session_token(user['username'])
                 await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2) ON CONFLICT (token) DO UPDATE SET token = $1", token, int(user['uid']))
                 await current_app.pool.execute("UPDATE users SET sessions = array_append(sessions, $2) WHERE uid = $1", int(user['uid']), token)
                 
@@ -218,7 +218,7 @@ async def auth_verify(data):
                 
                 # Set the cookie on the response object
                 print(response)
-                response = await set_cookie(response, token, 1)
+                response = await SessionManager.set_cookie(response, token, 1)
                 
                 return response
         else:
@@ -278,7 +278,7 @@ async def verify_code(data):
             hashed_password = await asyncio.to_thread(bcrypt.hashpw, data.passw.encode('utf-8'), bcrypt.gensalt())
             _uuid = idgen.generate_id()
 
-            token = create_session_token(data.username)
+            token = SessionManager.create_session_token(data.username)
             await current_app.pool.execute("INSERT INTO users (email, password, wuwa_uid, username, uid, sessions, achievements, registered_at) VALUES ($1, $2, $3, $4, $5, $6, ARRAY[$7::json], $8)", 
                                            data.email, hashed_password.decode('utf-8'), int(data.uid), data.username, _uuid, [token], json.dumps({'name': 'create_account', 'time': datetime.datetime.now().timestamp()}), datetime.datetime.now()
                                            )
@@ -293,7 +293,7 @@ async def verify_code(data):
         
 
             # Set the cookie on the response object
-            response = await set_cookie(response, token, 1)
+            response = await SessionManager.set_cookie(response, token, 1)
             
             return response
         else:
@@ -303,7 +303,7 @@ async def verify_code(data):
         code = await current_app.pool.fetchrow("SELECT * FROM verification_codes WHERE email = $1 AND code = $2", data.email, int(data.code))
         if code:
             await current_app.pool.execute("DELETE FROM verification_codes WHERE email = $1", data.email)
-            token = create_session_token(data.username)
+            token = SessionManager.create_session_token(data.username)
             uid = await current_app.pool.fetchval("SELECT uid FROM users WHERE email = $1", data.email)
             await current_app.pool.execute("INSERT INTO sessions (token, uid) VALUES ($1, $2)", token, uid)
             await current_app.pool.execute("UPDATE users SET sessions = array_append(sessions, $2) WHERE uid = $1", uid, token)
@@ -316,7 +316,7 @@ async def verify_code(data):
             }))
             
             # Set the cookie on the response object
-            response = await set_cookie(response, token, 1)
+            response = await SessionManager.set_cookie(response, token, 1)
             
             return response
         else:
@@ -359,7 +359,7 @@ async def verify_token(data):
     jv = data.just_verify
     ac = data.action
 
-    verify = await verify_session_token(token, jv)
+    verify = await SessionManager.verify_session_token(token, jv)
     
     if verify['status'] == "success":
         return {"status": "success", "payload": "Valid session token."}

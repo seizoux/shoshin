@@ -12,6 +12,7 @@ declare namespace grecaptcha {
     }
 }
 
+`
 document.addEventListener('DOMContentLoaded', async function () {
     // Get the browser cookie named 'uid'
     let uidCookie = await getCookie('_sho-session');
@@ -57,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         // If the cookie does not exist, do nothing
     }
 });
+`
 
 export function LonClick(e: { preventDefault: () => void; }): void {
     e.preventDefault();

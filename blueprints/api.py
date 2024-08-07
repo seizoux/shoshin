@@ -5,7 +5,7 @@ import settings as _WebSettings
 import logging
 from utility import PIL
 from quart_cors import cors, route_cors
-from utility.methods import requires_valid_origin, verify_session_token, validate_token
+from utility.methods import requires_valid_origin, SessionManager
 from utility.schemas import requires, SendRequestSchema, EnvSchema, UsernameSchema, SearchSchema, HandleFriendRequestSchema, Token
 import json
 
@@ -55,7 +55,7 @@ async def search_user(data):
     token = data.token
     search = data.search
 
-    user = await validate_token(token)
+    user = await SessionManager.validate_token(token)
     if not user:
         return jsonify({'status': 'error', 'payload': 'User not found'}), 400
 
@@ -125,23 +125,25 @@ async def send_friend_request(data):
     token = data.token
     friend_id = data.friend_id
 
-    user = await validate_token(token)
+    user = await SessionManager.validate_token(token)
 
     friend = await current_app.pool.fetchrow('SELECT * FROM users WHERE uid=$1', int(friend_id))
 
     if not user or not friend:
-        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
+        return jsonify({'status': 'error', 'payload': 'User not found'})
 
     user_friends = json.loads(user['friends']) if user.get('friends') else None
     friend_friends = json.loads(friend['friends']) if friend.get('friends') else None
 
     if friend_friends:
-        if int(user['uid']) in friend_friends['accepted']:
-            return jsonify({'status': 'error', 'payload': 'Already friends'}), 400
+        for f in friend_friends['accepted']:
+            if f['uid'] == int(user['uid']):
+                return jsonify({'status': 'error', 'payload': 'Already friends'})
+            pass
 
     if user_friends:
         if int(friend_id) in user_friends['accepted']:
-            return jsonify({'status': 'error', 'payload': 'Already friends'}), 400
+            return jsonify({'status': 'error', 'payload': 'Already friends'})
 
     if not friend_friends:
         friend_friends = {
@@ -158,11 +160,11 @@ async def send_friend_request(data):
         }
 
     if user['uid'] in friend_friends['requests']:
-        return jsonify({'status': 'error', 'payload': 'Request already sent'}), 400
+        return jsonify({'status': 'error', 'payload': 'Request already sent'})
 
     if user_friends:
         if friend['uid'] in user_friends['requests']:
-            return jsonify({'status': 'error', 'payload': 'Pending request'}), 400
+            return jsonify({'status': 'error', 'payload': 'Pending request'})
 
     friend_friends['requests'].append(user['uid'])
 
@@ -179,7 +181,7 @@ async def send_friend_request(data):
             user['uid']
         )
 
-    return jsonify({'status': 'success', 'payload': 'Friend request sent'}), 200
+    return jsonify({'status': 'success', 'payload': 'Friend request sent'})
 
 @api_bp.route('/friend/request/handle', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")
@@ -219,7 +221,7 @@ async def handle_friend_request(data):
 
     log.info(f"Data: {data}")
 
-    user = await validate_token(token)
+    user = await SessionManager.validate_token(token)
     friend = await current_app.pool.fetchrow('SELECT friends FROM users WHERE uid=$1', int(request_uid))
 
     if not user or not friend:
@@ -294,7 +296,7 @@ async def friends_list(token):
     payload : str
         The error message.
     """
-    user = await validate_token(token)
+    user = await SessionManager.validate_token(token)
 
     if not user:
         return jsonify({'status': 'error', 'payload': 'User not found'}), 400
@@ -364,7 +366,7 @@ async def friends_requests(data):
     """
     token = data.token
 
-    user = await validate_token(token)
+    user = await SessionManager.validate_token(token)
 
     if user.get('friends'):
         friends = json.loads(user['friends'])

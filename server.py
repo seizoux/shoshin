@@ -12,7 +12,7 @@ from blueprints.auth import auth_bp
 from blueprints.captchag import captcha_bp
 from blueprints.cookies import cookies_bp
 import json
-from utility.methods import verify_session_token, sign_cookie, fetch_achievements, require_api_key, register_routes_with_spec
+from utility.methods import requires_valid_session_token, fetch_achievements, require_api_key, register_routes_with_spec, SessionManager, cookie_check
 import base64
 from apispec import APISpec
 from apispec.ext.marshmallow import MarshmallowPlugin
@@ -156,52 +156,34 @@ async def home():
     return await render_template(f"wuwagen.html", news_entry=news_entry)
 
 @app.route("/login")
+@cookie_check(cookie_name="_sho-session")
 async def login():
     return await render_template("auth/auth.html")
 
 @app.route("/register")
+@cookie_check(cookie_name="_sho-session")
 async def register():
     return await render_template("auth/register.html")
 
 @app.route("/profile/manage")
-async def view_profile():
-    uid_cookie = request.cookies.get('_sho-session')
-    if uid_cookie:
-        try:
-            value, signature = uid_cookie.rsplit('.', 1)
-            if sign_cookie(value) != signature:
-                return redirect(url_for('login'))
+@requires_valid_session_token
+async def view_profile(data):
+    print(data)
+    _un = fetch_achievements([json.loads(ach) for ach in data['achievements']])
 
-            cookie_value_json = base64.b64decode(value).decode()
-            uid_data = json.loads(cookie_value_json)
+    _fr = []
 
-            data = await verify_session_token(uid_data['raw']['token'], False)
-            print(f"Data: {data}")
-            if data['status'] == "error":
-                if data['message'] == "Invalid session token.":
-                    await app.pool.execute("DELETE FROM sessions WHERE token = $1", uid_data['raw']['token'])
-                    await app.pool.execute("UPDATE users SET sessions = array_remove(sessions, $1)", uid_data['raw']['token'])
-                return redirect(url_for('login'))
+    if data['friends']:
+        _f = json.loads(data['friends'])
+        if len(_f['accepted']) > 0:
+            for d in _f['accepted']:
+                friend_data = await app.pool.fetchrow("SELECT * FROM users WHERE uid = $1", d['uid'])
+                _fr.append(friend_data)
 
-            _un = fetch_achievements([json.loads(ach) for ach in data['payload']['achievements']])
+    print(_fr)
 
-            _fr = []
+    return await render_template("profile/account.html", data=data, achievements=_un, friends=_fr)
 
-            if data['payload']['friends']:
-                _f = json.loads(data['payload']['friends'])
-                if len(_f['accepted']) > 0:
-                    for uid in _f['accepted']:
-                        friend_data = await app.pool.fetchrow("SELECT * FROM users WHERE uid = $1", uid)
-                        _fr.append(friend_data)
-
-            print(_fr)
-
-            return await render_template("profile/account.html", data=data['payload'], achievements=_un, friends=_fr)
-        except Exception as e:
-            log.error(e)
-            return redirect(url_for('login'))
-
-    return redirect(url_for('login'))
 
 # Filter only specific routes for documentation
 @app.route('/openapi.json')

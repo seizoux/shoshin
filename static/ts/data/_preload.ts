@@ -1,9 +1,6 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Type for the mapping objects
-    interface Mapping {
-        [key: string]: string;
-    }
+import { Mapping } from '../interfaces'
 
+document.addEventListener('DOMContentLoaded', function() {
     // Define your mappings with appropriate types
     const _a: Mapping = {
         "_sho-mng-details": "_sho-mng-div-details",

@@ -54,7 +54,7 @@ class SendRequestSchema(msgspec.Struct):
 
 class HandleFriendRequestSchema(msgspec.Struct):
     token: str
-    friend_id: str
+    request_uid: str
     action: str
 
 class Token(msgspec.Struct):

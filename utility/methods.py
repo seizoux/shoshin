@@ -1,7 +1,7 @@
 import os
 import time
 import hashlib
-from quart import current_app, request, jsonify, make_response
+from quart import current_app, request, jsonify, redirect, url_for
 import hmac
 import datetime
 import json
@@ -139,7 +139,7 @@ def register_routes_with_spec(app, spec, blueprint: list):
                 spec._paths[path][method] = operation
 
                 # Log the updated spec
-                log.info(f"Updated spec paths: {spec._paths}")
+                log.info(f"[DOCS] API Paths Updated. Total paths: {len(spec._paths)}")
 
 class SnowflakeIDGenerator:
     """
@@ -164,6 +164,82 @@ class SnowflakeIDGenerator:
 
         return (timestamp << 22) | (self.worker_id << 12) | self.sequence
 
+class SessionManager:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def create_session_token(username):
+        token = hashlib.sha256(f"{username}{time.time()}".encode()).hexdigest()
+        return token
+
+    @staticmethod
+    async def verify_session_token(token, just_verify: bool = True):
+        _v = await current_app.pool.fetchrow("SELECT * FROM sessions WHERE token = $1", token)
+        if just_verify:
+            if not _v:
+                return {"status": "error", "payload": False}
+            return {"status": "success", "payload": True}
+
+        if not _v:
+            return {"status": "error", "payload": "Invalid", "message": "Invalid session token."}
+
+        data = await current_app.pool.fetchrow("SELECT * FROM users WHERE uid = $1", _v['uid'])
+        if not data:
+            return {"status": "error", "payload": "Invalid", "message": "Unable to find user."}
+
+        return {"status": "success", "payload": data}
+
+    @staticmethod
+    async def validate_token(token):
+        data = await SessionManager.verify_session_token(token, False)
+        if data['status'] == "error":
+            if data['message'] == "Invalid session token.":
+                return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
+            return redirect(url_for('login'))
+
+        return data['payload']
+
+    @staticmethod
+    def sign_cookie(value):
+        return hmac.new(secret_key.encode(), value.encode(), hashlib.sha256).hexdigest()
+
+    @staticmethod
+    def parse_cookie(cookie):
+        value, signature = cookie.rsplit('.', 1)
+        if SessionManager.sign_cookie(value) != signature:
+            return jsonify({'message': 'Invalid cookie signature'}), 403
+
+        # Base64 decode the value
+        cookie_value_json = base64.b64decode(value).decode()
+        return json.loads(cookie_value_json)
+
+    @staticmethod
+    async def set_cookie(response, token, days):
+        date = datetime.datetime.utcnow() + datetime.timedelta(days=days)
+        expires = date.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
+
+        # Create a dictionary to store both the value and the expiration time
+        cookie_value = {'raw': {'token': token, 'expiry': date.timestamp()}}
+        cookie_value_json = json.dumps(cookie_value)
+
+        # Base64 encode the JSON string to avoid issues with special characters
+        cookie_value_encoded = base64.b64encode(cookie_value_json.encode()).decode()
+
+        signature = SessionManager.sign_cookie(cookie_value_encoded)
+        signed_value = f"{cookie_value_encoded}.{signature}"
+
+        response.set_cookie(
+            '_sho-session',
+            value=signed_value,
+            max_age=days * 24 * 60 * 60,
+            httponly=True,
+            secure=True,
+            samesite='Strict',
+            expires=expires
+        )
+        return response
+
 # Function to check API key
 def require_api_key(func):
     @wraps(func)
@@ -184,74 +260,45 @@ def requires_valid_origin(func):
         return await func(*args, **kwargs)
     return wrapper
 
-# Function to create a session token
-def create_session_token(username):
-    token = hashlib.sha256(f"{username}{time.time()}".encode()).hexdigest()
-    return token
+"""
+This decorator checks if a valid session token is provided in the following way:
+    uid_cookie = request.cookies.get('_sho-session')
+    if uid_cookie:
+        _c = parse_cookie(uid_cookie)
+        uid_data = json.loads(_c)
 
-# Function to verify session token
-async def verify_session_token(token, just_verify: bool = True):
-    if just_verify:
-        _v = await current_app.pool.fetchrow("SELECT * FROM sessions WHERE token = $1", token)
-        if not _v:
-            return {"status": "error", "payload": False}
-        return {"status": "success", "payload": True}
-    
-    _v = await current_app.pool.fetchrow("SELECT * FROM sessions WHERE token = $1", token)
-    if not _v:
-        return {"status": "error", "payload": "Invalid", "message": "Invalid session token."}
-    
-    data = await current_app.pool.fetchrow("SELECT * FROM users WHERE uid = $1", _v['uid'])
-    if not data:
-        return {"status": "error", "payload": "Invalid", "message": "Unable to find user."}
-    
-    return {"status": "success", "payload": data}
+        data = await validate_token(uid_data['raw']['token'], False)
+"""
+def requires_valid_session_token(func):
+    @wraps(func)
+    async def wrapper_session(*args, **kwargs):
+        uid_cookie = request.cookies.get('_sho-session')
+        if uid_cookie:
+            uid_data = SessionManager.parse_cookie(uid_cookie)
 
-async def validate_token(token):
-    data = await verify_session_token(token, False)
-    if data['status'] == "error":
-        if data['message'] == "Invalid session token.":
-            return jsonify({'status': 'error', 'payload': 'Invalid session token'}), 400
-        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
+            validation_result = await SessionManager.validate_token(uid_data['raw']['token'])
+            if isinstance(validation_result, tuple):
+                # validation_result is (response, status_code)
+                return validation_result
 
-    return data['payload']
+            # Pass the validated user data to the decorated function
+            return await func(data=validation_result, *args, **kwargs)
+        return redirect(url_for('login'))
+    return wrapper_session
 
-def sign_cookie(value):
-    return hmac.new(secret_key.encode(), value.encode(), hashlib.sha256).hexdigest()
-
-def parse_cookie(cookie):
-    value, signature = cookie.rsplit('.', 1)
-    if sign_cookie(value) != signature:
-        return jsonify({'message': 'Invalid cookie signature'}), 403
-
-    # Base64 decode the value
-    cookie_value_json = base64.b64decode(value).decode()
-    return cookie_value_json
-
-async def set_cookie(response, token, days):
-    date = datetime.datetime.utcnow() + datetime.timedelta(days=days)
-    expires = date.strftime("%a, %d-%b-%Y %H:%M:%S GMT")
-
-    # Create a dictionary to store both the value and the expiration time
-    cookie_value = {'raw': {'token': token, 'expiry': date.timestamp()}}
-    cookie_value_json = json.dumps(cookie_value)
-
-    # Base64 encode the JSON string to avoid issues with special characters
-    cookie_value_encoded = base64.b64encode(cookie_value_json.encode()).decode()
-
-    signature = sign_cookie(cookie_value_encoded)
-    signed_value = f"{cookie_value_encoded}.{signature}"
-
-    response.set_cookie(
-        '_sho-session',
-        value=signed_value,
-        max_age=days * 24 * 60 * 60,
-        httponly=True,
-        secure=True,
-        samesite='Strict',
-        expires=expires
-    )
-    return response
+def cookie_check(cookie_name):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            cookie_value = request.cookies.get(cookie_name)
+            if cookie_value:
+                # If the cookie exists, redirect to `/profile/manage`
+                return redirect(url_for('view_profile'))
+            # If the cookie does not exist, call the original function
+            return await func(*args, **kwargs)
+        
+        return wrapper
+    return decorator
 
 def fetch_achievements(achievements):
     achivements_icons_folder_path = "https://beta.shoshin.moe/static/achievements"
