@@ -6,7 +6,7 @@ import logging
 from utility import PIL
 from quart_cors import cors, route_cors
 from utility.methods import requires_valid_origin, SessionManager
-from utility.schemas import requires, SendRequestSchema, EnvSchema, UsernameSchema, SearchSchema, HandleFriendRequestSchema, Token
+from utility.schemas import requires, SendRequestSchema, EnvSchema, UsernameSchema, SearchSchema, HandleFriendRequestSchema, HandleFriendsSchema, Token
 import json
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -397,6 +397,100 @@ async def friends_requests(data):
 
         return jsonify({'status': 'success', 'payload': {'in': _in, 'out': _out}}), 200
     return jsonify({'status': 'error', 'payload': 'No friend requests found'}), 400
+
+@api_bp.route('/friends/handle', methods=['POST'])
+@route_cors(allow_origin="https://beta.shoshin.moe")
+@requires_valid_origin
+@requires(HandleFriendsSchema)
+async def handle_friends(data):
+    """Handle friend actions (accept, reject, block).
+
+    Request JSON
+    ------------
+    token : str
+        The session token of the user.
+    action : str
+        The action to take ('accept', 'reject', 'block').
+    friend_id : str
+        The UID of the friend to take action on.
+
+    Returns
+    -------
+    200 OK
+    ---------
+    status : str
+        The status of the request process.
+    payload : str
+        The result of the friend action process.
+
+    400 Bad Request
+    ---------------
+    status : str
+        The status of the request process.
+    payload : str
+        The error message.
+    """
+    token = data.token
+    action = data.action
+    friend_id = data.friend_uid
+
+    user = await SessionManager.validate_token(token)
+    friend = await current_app.pool.fetchrow('SELECT friends FROM users WHERE uid=$1', int(friend_id))
+
+    if not user or not friend:
+        return jsonify({'status': 'error', 'payload': 'User not found'}), 400
+
+    if not user.get('friends'):
+        return jsonify({'status': 'error', 'payload': 'No friends found'}), 400
+
+    user_friends = json.loads(user['friends'])
+    friend_friends = json.loads(friend['friends']) if friend.get('friends') else None
+
+    if action == 'remove':
+        if 'accepted' in user_friends:
+            for f in user_friends['accepted']:
+                if f['uid'] == int(friend_id):
+                    user_friends['accepted'].remove(f)
+                    break
+
+        if 'accepted' in friend_friends:
+            for f in friend_friends['accepted']:
+                if f['uid'] == int(user['uid']):
+                    friend_friends['accepted'].remove(f)
+                    break
+
+        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE uid=$2', json.dumps(user_friends), user['uid'])
+        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE uid=$2', json.dumps(friend_friends), int(friend_id))
+
+        return jsonify({'status': 'success', 'payload': 'Friend removed'})
+    
+    elif action == 'block':
+        if 'accepted' in user_friends:
+            for f in user_friends['accepted']:
+                if f['uid'] == int(friend_id):
+                    user_friends['accepted'].remove(f)
+                    break
+
+        if 'accepted' in friend_friends:
+            for f in friend_friends['accepted']:
+                if f['uid'] == int(user['uid']):
+                    friend_friends['accepted'].remove(f)
+                    break
+
+        if 'blocked' not in user_friends:
+            user_friends['blocked'] = []
+
+        if 'blocked' not in friend_friends:
+            friend_friends['blocked'] = []
+
+        user_friends['blocked'].append({'uid': int(friend_id), 'blocked_since': datetime.datetime.now().isoformat()})
+        friend_friends['blocked'].append({'uid': user['uid'], 'blocked_since': datetime.datetime.now().isoformat()})
+
+        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE uid=$2', json.dumps(user_friends), user['uid'])
+        await current_app.pool.execute('UPDATE users SET friends=$1 WHERE uid=$2', json.dumps(friend_friends), int(friend_id))
+
+        return jsonify({'status': 'success', 'payload': 'Friend blocked'})
+
 
 @api_bp.route('/env', methods=['POST'])
 @route_cors(allow_origin="https://beta.shoshin.moe")

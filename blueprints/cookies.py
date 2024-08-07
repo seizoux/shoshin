@@ -6,6 +6,10 @@ import datetime
 import json
 import base64
 from utility.methods import SessionManager
+import logging
+
+log = logging.getLogger("hypercorn")
+log.setLevel(logging.INFO)
 
 cookies_bp = Blueprint('cookies', __name__, url_prefix='/ck')
 
@@ -21,9 +25,10 @@ async def get_cookie():
 
     try:
         cjson = SessionManager.parse_cookie(cookie_value)
-        return jsonify(json.loads(cjson))
+        return jsonify(cjson)
     except Exception as e:
-        return jsonify({'message': 'Error parsing cookie'}), 400
+        log.info(e)
+        return jsonify({'message': 'Error parsing cookie', 'error': str(e)}), 400
 
 @cookies_bp.route('/erasecookie', methods=['GET'])
 async def erase_cookie():
@@ -37,7 +42,7 @@ async def erase_cookie():
         return jsonify({'message': 'No cookie found'}), 404
 
     try:
-        cjson = json.loads(SessionManager.parse_cookie(cookie_value))
+        cjson = SessionManager.parse_cookie(cookie_value)
     except Exception as e:
         return jsonify({'message': 'Error parsing cookie'}), 400
 

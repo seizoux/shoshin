@@ -59,3 +59,8 @@ class HandleFriendRequestSchema(msgspec.Struct):
 
 class Token(msgspec.Struct):
     token: str
+
+class HandleFriendsSchema(msgspec.Struct):
+    token: str
+    friend_uid: str
+    action: str
