@@ -2,7 +2,6 @@ import { _f } from './_e';
 import { _ } from './_err';
 import { _px, _pl, _pv } from './_proxy';
 import { _pvc_v } from './_pvc';
-import { getCookie, eraseCookie } from '../_cookie_manager';
 
 // Type declarations for external scripts
 declare namespace grecaptcha {
@@ -11,54 +10,6 @@ declare namespace grecaptcha {
         function execute(siteKey: string, options: { action: string }): Promise<string>;
     }
 }
-
-`
-document.addEventListener('DOMContentLoaded', async function () {
-    // Get the browser cookie named 'uid'
-    let uidCookie = await getCookie('_sho-session');
-
-    // If the cookie exists, parse it and check its expiration
-    if (uidCookie) {
-        let uidData = uidCookie;
-        _._(1, { r: 'api/auth', e: uidData, p: 'auth' });
-        let currentTime = new Date().getTime();
-
-        if (currentTime > uidData.expiry) {
-            // If the cookie is expired, remove it and redirect the user to the login page
-            eraseCookie('_sho-session');
-            window.location.href = '/login';
-        } else {
-            // If the cookie is not expired, redirect the user to the account page
-            fetch(_pv, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: uidData.raw.token, just_verify: false, action: null })
-            }
-            ).then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Failed to verify session');
-            }).then(data => {
-                if (data.status === 'success') {
-                    _._(1, { r: 'api/auth', e: data.payload, p: 'auth' });
-                    window.location.href = '/profile/manage';
-                } else if (data.status === 'error') {
-                    _._(0, { r: 'api/auth', e: data.payload, p: 'auth' });
-                    eraseCookie('_sho-session');
-                    window.location.href = '/login';
-                }
-            }).catch(error => {
-                console.error(error);
-                eraseCookie('_sho-session');
-                window.location.href = '/login';
-            });
-        }
-    } else {
-        // If the cookie does not exist, do nothing
-    }
-});
-`
 
 export function LonClick(e: { preventDefault: () => void; }): void {
     e.preventDefault();

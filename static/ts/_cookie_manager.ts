@@ -1,7 +1,6 @@
 import { _ck } from './auth/_proxy';
 import { _ } from './auth/_err';
 
-const sc = _ck + 'setcookie';
 const gc = _ck + 'getcookie';
 const ec = _ck + 'erasecookie';
 

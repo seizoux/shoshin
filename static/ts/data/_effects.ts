@@ -1,4 +1,3 @@
-import { getCookie } from "../_cookie_manager";
 import { _ } from "../auth/_err";
 
 document.addEventListener('DOMContentLoaded', function() {
