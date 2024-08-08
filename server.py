@@ -156,12 +156,12 @@ async def home():
     return await render_template(f"wuwagen.html", news_entry=news_entry)
 
 @app.route("/login")
-@cookie_check(cookie_name="_sho-session")
+@cookie_check(cookie_name="_sho-session", redirect='view_profile')
 async def login():
     return await render_template("auth/auth.html")
 
 @app.route("/register")
-@cookie_check(cookie_name="_sho-session")
+@cookie_check(cookie_name="_sho-session", redirect='view_profile')
 async def register():
     return await render_template("auth/register.html")
 
@@ -184,6 +184,11 @@ async def view_profile(data):
 
     return await render_template("profile/account.html", data=data, achievements=_un, friends=_fr)
 
+@app.route("/u/<uid>/dms")
+@cookie_check(cookie_name="_sho-session", redirect='no_redirect')
+@requires_valid_session_token
+async def dms(data, uid):
+    return await render_template("dms/dm.html", data=data, uid=uid)
 
 # Filter only specific routes for documentation
 @app.route('/openapi.json')
