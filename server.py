@@ -188,7 +188,19 @@ async def view_profile(data):
 @cookie_check(cookie_name="_sho-session", redirect='no_redirect')
 @requires_valid_session_token
 async def dms(data, uid):
-    return await render_template("dms/dm.html", data=data, uid=uid)
+
+    _fr = []
+
+    if data['friends']:
+        _f = json.loads(data['friends'])
+        if len(_f['accepted']) > 0:
+            for d in _f['accepted']:
+                friend_data = await app.pool.fetchrow("SELECT * FROM users WHERE uid = $1", d['uid'])
+                _fr.append(friend_data)
+
+    log.info(_fr)
+
+    return await render_template("dms/dm.html", data=data, uid=uid, friends=_fr)
 
 # Filter only specific routes for documentation
 @app.route('/openapi.json')
